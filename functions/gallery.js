@@ -1,322 +1,205 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kurt Tristan - Wander & Wonder</title>
-  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder" />
+// functions/gallery.js
+// REST API for your gallery (no 'path' column required).
+// Endpoints:
+// REST API for your gallery (no `path` column required).
+// Methods:
+//   GET    /.netlify/functions/gallery
+//   POST   /.netlify/functions/gallery           { image (DataURL) | dataUrl, filename, location }
+//   PUT    /.netlify/functions/gallery           { id, location? , image_url? }
+//   DELETE /.netlify/functions/gallery           { id }
+//   POST   /.netlify/functions/gallery     { image (DataURL) | dataUrl, filename, location }
+//   PUT    /.netlify/functions/gallery     { id, location? , image_url? }
+//   DELETE /.netlify/functions/gallery     { id }
+//
+// Env vars (Netlify → Site settings → Environment):
+// Netlify env vars required (Site settings → Environment):
+//   SUPAHUB_URL or SUPABASE_URL
+//   SUPAHUB_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY
+//   (optional) SUPAHUB_BUCKET or SUPABASE_BUCKET  -> defaults to "photos"
+//   (optional) SUPAHUB_GALLERY_TABLE              -> defaults to "gallery"
+//
+// Requires Node 18+ (for built-in fetch). Set NODE_VERSION=18 if needed.
+// Optional:
+//   SUPAHUB_BUCKET (default "photos")
+//   SUPAHUB_GALLERY_TABLE (default "gallery")
+// Also set: NODE_VERSION=18 (or 20) so `fetch` is available.
 
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml" />
+const CORS = {
+'Access-Control-Allow-Origin': '*',
+@@ -49,7 +49,11 @@ const getCfg = () => {
+return { BASE, KEY, BUCKET, TABLE, rest, objectWrite, objectPublic };
+};
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; color: #2c2c2c; overflow-x: hidden; margin-left: 280px; }
+const headersJSON = (key) => ({ apikey: key, authorization: `Bearer ${key}`, 'content-type': 'application/json' });
+const headersJSON = (key) => ({
+  apikey: key,
+  authorization: `Bearer ${key}`,
+  'content-type': 'application/json',
+});
 
-    /* Sidebar */
-    .sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); z-index: 1000; padding: 2rem 0; display: flex; flex-direction: column; border-right: 1px solid rgba(138,154,142,0.1); }
-    .sidebar-logo { padding: 0 2rem 3rem 2rem; border-bottom: 1px solid rgba(138,154,142,0.1); margin-bottom: 3rem; }
-    .sidebar-logo h1 { font-size: 1.5rem; font-weight: 700; color: #2c2c2c; }
-    .sidebar-logo p { font-size: 0.9rem; color: #8A9A8E; margin-top: .5rem; font-weight: 500; }
-    .sidebar-nav { flex: 1; padding: 0 2rem; }
-    .sidebar-nav ul { list-style: none; }
-    .sidebar-nav li { margin-bottom: 1rem; }
-    .sidebar-nav a { display: flex; align-items: center; padding: 1rem 1.5rem; text-decoration: none; color: #666; border-radius: 12px; transition: all .3s ease; font-weight: 500; }
-    .sidebar-nav a:hover { background: rgba(138,154,142,0.1); color: #8A9A8E; transform: translateX(5px); }
-    .sidebar-nav a.active { background: rgba(138,154,142,0.15); color: #8A9A8E; }
-    .nav-icon { width: 24px; height: 24px; border-radius: 50%; background: #8A9A8E; display: flex; align-items: center; justify-content: center; margin-right: 1rem; color: white; }
-    .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(138,154,142,0.1); margin-top: auto; }
-    .sidebar-footer p { font-size: .8rem; color: #999; text-align: center; }
+const cleanName = (s = '') =>
+s.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+@@ -60,7 +64,7 @@ const parseDataUrl = (dataUrl) => {
+return { contentType: m[1], buffer: Buffer.from(m[2], 'base64') };
+};
 
-    /* Header (mobile) */
-    header { display: none; }
+// Extract object path from a public URL like:
+// Derive the storage object path from a Supabase public URL:
+// .../storage/v1/object/public/<bucket>/<objectPath>
+const extractObjectPath = (publicUrl, bucket) => {
+try {
+@@ -81,16 +85,21 @@ exports.handler = async (event) => {
+const { BASE, KEY, BUCKET, TABLE, rest, objectWrite, objectPublic } = getCfg();
 
-    /* Hero */
-    .hero { height: 100vh; background: linear-gradient(135deg,#8A9A8E 0%,#6B7A6F 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: url('photos/hero-image.jpg') center/cover; opacity: 0; z-index:1; animation: heroFadeIn 2s ease 1s forwards; }
-    .hero-content { position: relative; z-index:2; max-width: 800px; padding: 0 2rem; }
-    .hero h1 { font-size: clamp(3rem,8vw,6rem); font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -2px; opacity:0; animation: fadeInUp 1s ease .5s forwards; }
-    .hero p { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; opacity:0; animation: fadeInUp 1s ease .7s forwards; }
-    .cta-button { display:inline-block; padding:1rem 2.5rem; background:rgba(255,255,255,0.2); border:2px solid white; border-radius:50px; font-weight:600; color:white; text-decoration:none; transition:.3s; opacity:0; animation: fadeInUp 1s ease .9s forwards; }
-    .cta-button:hover { background:white; color:#8A9A8E; transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.2); }
-
-    /* Gallery */
-    .gallery { padding:8rem 0; background:#F5F1E8; }
-    .gallery-container { max-width:1400px; margin:0 auto; padding:0 2rem; }
-    .section-title { text-align:center; margin-bottom:4rem; }
-    .section-title h2 { font-size:3rem; font-weight:700; color:#2c2c2c; margin-bottom:1rem; }
-    .section-title p { font-size:1.2rem; color:#666; max-width:600px; margin:0 auto; }
-    .gallery-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap:2rem; margin-bottom:4rem; }
-    .gallery-item { position:relative; border-radius:20px; overflow:hidden; aspect-ratio:4/3; background:#ddd; transition:.3s; cursor:pointer; }
-    .gallery-item:hover { transform:translateY(-10px); box-shadow:0 20px 40px rgba(0,0,0,.15); }
-    .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
-    .gallery-item:hover img { transform:scale(1.05); }
-
-    /* Journal */
-    .journal { padding:8rem 0; background:white; }
-    .journal-container { max-width:800px; margin:0 auto; padding:0 2rem; }
-    .journal-entries { display:flex; flex-direction:column; gap:3rem; }
-    .journal-entry { background:#F5F1E8; border-radius:20px; padding:3rem; transition:.3s; }
-    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.1); }
-    .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
-    .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
-    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
-    .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
-
-    /* Placeholder */
-    .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
-
-    /* Lightbox */
-    .lightbox { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:.3s; }
-    .lightbox.active { opacity:1; visibility:visible; }
-    .lightbox-content { position:relative; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; }
-    .lightbox-image { max-width:100%; max-height:85vh; object-fit:contain; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
-    .lightbox-caption { color:white; font-size:1rem; font-weight:500; margin-top:1.5rem; text-align:center; background:rgba(255,255,255,0.1); padding:.75rem 1.5rem; border-radius:25px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
-    .lightbox-close { position:absolute; top:2rem; right:2rem; background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
-    .lightbox-close:hover { background:rgba(255,255,255,0.3); transform:scale(1.1); }
-    .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:60px; height:60px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
-    .lightbox-nav:hover { background:rgba(255,255,255,0.3); transform:translateY(-50%) scale(1.1); }
-    .lightbox-prev { left:2rem; }
-    .lightbox-next { right:2rem; }
-
-    footer { background:#8A9A8E; color:white; padding:3rem 0; text-align:center; }
-    .footer-content { max-width:1200px; margin:0 auto; padding:0 2rem; }
-    .footer-content p { font-size:1rem; opacity:0.8; }
-
-    @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
-    @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.8;} }
-
-    /* Responsive */
-    @media (max-width:1024px) { body{margin-left:0;} .sidebar{transform:translateX(-100%);transition:.3s;} .sidebar.open{transform:translateX(0);} header{display:block; position:fixed; top:0; width:100%; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); z-index:1001; padding:1rem 0;} nav{max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0 2rem;} .logo{font-size:1.5rem; font-weight:700; color:#2c2c2c; text-decoration:none;} .mobile-menu-btn{background:none; border:none; font-size:1.5rem; color:#2c2c2c; cursor:pointer;} .hero{padding-top:80px; height:calc(100vh - 80px);} }
-    @media (max-width:768px) { .hero h1{font-size:3rem;} .hero p{font-size:1.2rem;} .gallery-grid{grid-template-columns:1fr;} .section-title h2{font-size:2rem;} .sidebar{width:100%;} }
-    html { scroll-behavior:smooth; }
-  </style>
-</head>
-<body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-logo"><h1>Kurt Tristan</h1><p>Explorer</p></div>
-    <nav class="sidebar-nav">
-      <ul>
-        <li><a href="#home" class="nav-link active"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg></div>Home</a></li>
-        <li><a href="#gallery" class="nav-link"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>Gallery</a></li>
-        <li><a href="#journal" class="nav-link"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></div>Journal</a></li>
-      </ul>
-    </nav>
-    <div class="sidebar-footer"><p>&copy; 2025 Kurt Tristan</p></div>
-  </div>
-
-  <!-- Mobile Header -->
-  <header><nav><a href="#" class="logo">Kurt Tristan</a><button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button></nav></header>
-
-  <!-- Hero -->
-  <section class="hero" id="home">
-    <div class="hero-content"><h1>Wander & Wonder</h1><p>When is Anything Ever Always?</p><a href="#gallery" class="cta-button">Explore Gallery</a></div>
-  </section>
-
-  <!-- Gallery (dynamic) -->
-  <section class="gallery" id="gallery">
-    <div class="gallery-container">
-      <div class="section-title"><h2>Featured Collection</h2><p>A curated selection of moments and memories captured.</p></div>
-      <div class="gallery-grid" id="gallery-grid">
-        <!-- Filled dynamically -->
-      </div>
-    </div>
-  </section>
-
-  <!-- Journal -->
-  <section class="journal" id="journal">
-    <div class="journal-container">
-      <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and memories.</p></div>
-      <div class="journal-entries">
-        <article class="journal-entry">
-          <div class="entry-header">
-            <h3>Moment</h3>
-            <time>May 25, 2025</time>
-          </div>
-          <div class="entry-content">
-            <p>The problem isn't just capturing the image, it's capturing the emotions I held while also being in that moment. Moment. I now understand what people mean when they want to write a song, a poem, paint, or take the perfect photo. Maybe that's why I am ever rarely satisfied with anything I create— it's because I struggle to capture the Moment completely.</p>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- Lightbox -->
-  <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-    <button class="lightbox-nav lightbox-prev" onclick="previousImage()">&#8249;</button>
-    <button class="lightbox-nav lightbox-next" onclick="nextImage()">&#8250;</button>
-    <div class="lightbox-content">
-      <img class="lightbox-image" id="lightbox-image" src="" alt="">
-      <div class="lightbox-caption" id="lightbox-caption"></div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
-
-  <script>
-    // ===== Dynamic gallery loader =====
-    let galleryImages = []; // {src, location}
-    let currentImageIndex = 0;
-
-    async function loadGallery() {
-      const grid = document.getElementById('gallery-grid');
-      grid.innerHTML = '<div class="placeholder" style="aspect-ratio:4/3;border-radius:20px;display:flex;align-items:center;justify-content:center;">Loading…</div>';
-
-      try {
-        const res = await fetch('/.netlify/functions/gallery');
-        if (!res.ok) throw new Error('Failed to fetch gallery: ' + res.status);
-        const rows = await res.json();
-
-        // Map rows to the structure we use
-        galleryImages = rows.map(r => ({
-          src: r.image_url || r.src || r.filename, // prefer public URL
-          location: r.location || ''
-        }));
-
-        // Render cards
-        grid.innerHTML = '';
-        if (!galleryImages.length) {
-          grid.innerHTML = '<div class="placeholder" style="aspect-ratio:4/3;border-radius:20px;">No photos yet</div>';
-        } else {
-          galleryImages.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'gallery-item';
-            card.onclick = () => openLightbox(index);
-
-            const img = document.createElement('img');
-            img.alt = `Adventure ${index + 1}`;
-            img.src = item.src;
-
-            // graceful error placeholder
-            img.onerror = function() {
-              this.style.display = 'none';
-              card.classList.add('placeholder');
-              card.innerHTML = '<div>Image Coming Soon</div>';
-            };
-
-            card.appendChild(img);
-            grid.appendChild(card);
-          });
-        }
-
-        // Re-attach animations for the newly created items
-        attachScrollAnimations();
-
-      } catch (err) {
-        console.error(err);
-        grid.innerHTML = '<div class="placeholder" style="aspect-ratio:4/3;border-radius:20px;">Could not load gallery</div>';
-      }
-    }
-
-    // ===== Lightbox functions (reuse your logic) =====
-    function openLightbox(index) {
-      currentImageIndex = index;
-      const lightbox = document.getElementById('lightbox');
-      const img = document.getElementById('lightbox-image');
-      const caption = document.getElementById('lightbox-caption');
-
-      const item = galleryImages[index] || {};
-      img.src = item.src || '';
-      caption.textContent = item.location || '';
-      lightbox.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeLightbox() {
-      document.getElementById('lightbox').classList.remove('active');
-      document.body.style.overflow='auto';
-    }
-    function nextImage() {
-      if (!galleryImages.length) return;
-      currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
-      updateLightboxImage();
-    }
-    function previousImage() {
-      if (!galleryImages.length) return;
-      currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
-      updateLightboxImage();
-    }
-    function updateLightboxImage() {
-      const img = document.getElementById('lightbox-image');
-      const caption = document.getElementById('lightbox-caption');
-      const item = galleryImages[currentImageIndex] || {};
-      img.src = item.src || '';
-      caption.textContent = item.location || '';
-    }
-
-    // Keyboard & backdrop
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeLightbox();
-      else if (e.key === 'ArrowRight') nextImage();
-      else if (e.key === 'ArrowLeft') previousImage();
-    });
-    document.getElementById('lightbox').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeLightbox();
-    });
-
-    // Sidebar toggle (unchanged)
-    function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');}
-    document.addEventListener('click',e=>{
-      const sidebar=document.querySelector('.sidebar');
-      const btn=document.querySelector('.mobile-menu-btn');
-      if(window.innerWidth<=1024 && !sidebar.contains(e.target)&&!btn.contains(e.target)&&sidebar.classList.contains('open')){
-        sidebar.classList.remove('open');
-      }
-    });
-
-    // Smooth nav and active state (unchanged)
-    document.querySelectorAll('.nav-link').forEach(anchor=>{
-      anchor.addEventListener('click',function(e){
-        e.preventDefault();
-        const target=document.querySelector(this.getAttribute('href'));
-        if(target){
-          target.scrollIntoView({behavior:'smooth'});
-          document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-          this.classList.add('active');
-          if(window.innerWidth<=1024)document.querySelector('.sidebar').classList.remove('open');
-        }
-      });
-    });
-    window.addEventListener('scroll',()=>{
-      const sections=['home','gallery','journal'];
-      const pos=window.scrollY+200;
-      sections.forEach(id=>{
-        const el=document.getElementById(id);
-        if(el && pos>=el.offsetTop && pos<el.offsetTop+el.offsetHeight){
-          document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-          const link=document.querySelector(`.nav-link[href="#${id}"]`);
-          if(link) link.classList.add('active');
-        }
-      });
-    });
-
-    // Intersection Observer animations (re-applied after render)
-    let observer;
-    function attachScrollAnimations() {
-      if (observer) observer.disconnect();
-      observer = new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          if(entry.isIntersecting){
-            entry.target.style.opacity='1';
-            entry.target.style.transform='translateY(0)';
-          }
+switch (event.httpMethod) {
+      // LIST
+      // -----------------------
+      // GET: list gallery items
+      // -----------------------
+case 'GET': {
+        const res = await fetch(rest(`/${encodeURIComponent(TABLE)}?select=*`), { headers: headersJSON(KEY) });
+        // You can add ordering if you want:
+        // const qs = `?select=*&order=order_index.asc.nullslast&order=created_at.desc.nullslast`;
+        const res = await fetch(rest(`/${encodeURIComponent(TABLE)}?select=*`), {
+          headers: headersJSON(KEY),
         });
-      },{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+if (!res.ok) {
+const t = await res.text().catch(() => '');
+console.error('[GET gallery] REST error', res.status, t);
+return json(502, { error: 'Failed to list gallery', detail: t });
+}
+const rows = await res.json();
 
-      document.querySelectorAll('.gallery-item, .journal-entry').forEach(item=>{
-        item.style.opacity='0';
-        item.style.transform='translateY(30px)';
-        item.style.transition='all 0.6s ease';
-        observer.observe(item);
-      });
-    }
+// Ensure consistent fields for the frontend
+const out = rows.map((r) => {
+const url = r.image_url || r.src || null;
+@@ -99,21 +108,28 @@ exports.handler = async (event) => {
+return json(200, out);
+}
 
-    // Kick off
-    document.addEventListener('DOMContentLoaded', () => {
-      loadGallery();
-    });
-  </script>
-</body>
-</html>
+      // UPLOAD + INSERT
+      // --------------------------------------
+      // POST: upload + insert DB row (no path)
+      // body: { image (DataURL) | dataUrl, filename, location }
+      // --------------------------------------
+case 'POST': {
+const body = JSON.parse(event.body || '{}');
+        const image = body.image || body.dataUrl; // accept either field name
+        const image = body.image || body.dataUrl; // accept either key
+const { filename, location } = body;
+if (!image || !filename) return json(400, { error: 'image and filename required' });
+
+const { contentType, buffer } = parseDataUrl(image);
+const fname = cleanName(filename);
+const objectPath = `uploads/${Date.now()}_${fname}`;
+
+        // Upload to storage (write path: no /public)
+        // Upload to storage (write path: NO /public)
+const upRes = await fetch(objectWrite(BUCKET, objectPath), {
+method: 'POST',
+          headers: { authorization: `Bearer ${KEY}`, 'content-type': contentType, 'x-upsert': 'true' },
+          headers: {
+            authorization: `Bearer ${KEY}`,
+            'content-type': contentType,
+            'x-upsert': 'true',
+          },
+body: buffer,
+});
+if (!upRes.ok) {
+@@ -124,12 +140,13 @@ exports.handler = async (event) => {
+
+const publicUrl = objectPublic(BUCKET, objectPath);
+
+        // Insert ONLY columns your table has (no 'path')
+        // Insert only known columns
+const payload = {
+filename: fname,
+location: location || '',
+image_url: publicUrl,
+          // created_at: new Date().toISOString() // add only if your table has this column without default
+          // If you want ordering and your column supports big values:
+          // order_index: Date.now()
+};
+const insRes = await fetch(rest(`/${encodeURIComponent(TABLE)}`), {
+method: 'POST',
+@@ -139,7 +156,7 @@ exports.handler = async (event) => {
+if (!insRes.ok) {
+const t = await insRes.text().catch(() => '');
+console.error('[POST insert] REST error', insRes.status, t);
+          // Optional: delete the file we just uploaded to avoid orphaning
+          // Optionally delete the just-uploaded object to avoid orphaning
+// await fetch(objectWrite(BUCKET, objectPath), { method: 'DELETE', headers: { authorization: `Bearer ${KEY}` } }).catch(()=>{});
+return json(502, { error: 'db insert failed', detail: t });
+}
+@@ -149,7 +166,10 @@ exports.handler = async (event) => {
+return json(200, result);
+}
+
+      // UPDATE (location and/or image_url)
+      // --------------------------------------
+      // PUT: update location and/or image_url
+      // body: { id, location?, image_url? }
+      // --------------------------------------
+case 'PUT': {
+const body = JSON.parse(event.body || '{}');
+const { id, location, image_url } = body || {};
+@@ -158,30 +178,37 @@ exports.handler = async (event) => {
+const fields = {};
+if (typeof location === 'string') fields.location = location;
+if (typeof image_url === 'string') fields.image_url = image_url;
+
+if (Object.keys(fields).length === 0) return json(400, { error: 'No updatable fields provided' });
+
+const updRes = await fetch(
+rest(`/${encodeURIComponent(TABLE)}?id=eq.${encodeURIComponent(String(id))}`),
+          { method: 'PATCH', headers: { ...headersJSON(KEY), Prefer: 'return=representation' }, body: JSON.stringify(fields) }
+          {
+            method: 'PATCH',
+            headers: { ...headersJSON(KEY), Prefer: 'return=representation' },
+            body: JSON.stringify(fields),
+          }
+);
+if (!updRes.ok) {
+const t = await updRes.text().catch(() => '');
+console.error('[PUT update] REST error', updRes.status, t);
+return json(502, { error: 'db update failed', detail: t });
+}
+
+const [row] = await updRes.json();
+const url = row.image_url || row.src || null;
+return json(200, { ...row, image_url: url, src: url });
+}
+
+      // DELETE (also delete storage object best-effort by parsing image_url)
+      // --------------------------------------
+      // DELETE: remove DB row and storage object
+      // body: { id }
+      // --------------------------------------
+case 'DELETE': {
+const body = JSON.parse(event.body || '{}');
+const { id } = body || {};
+if (!id) return json(400, { error: 'Missing id' });
+
+        // Load the row to get its image_url
+        // Get row to read its image_url (so we can delete the object)
+const getRes = await fetch(
+rest(`/${encodeURIComponent(TABLE)}?id=eq.${encodeURIComponent(String(id))}&select=id,image_url`),
+{ headers: headersJSON(KEY) }
+@@ -193,7 +220,7 @@ exports.handler = async (event) => {
+}
+const [row] = await getRes.json();
+
+        // Delete the DB row
+        // Delete DB row
+const delRes = await fetch(
+rest(`/${encodeURIComponent(TABLE)}?id=eq.${encodeURIComponent(String(id))}`),
+{ method: 'DELETE', headers: { ...headersJSON(KEY), Prefer: 'return=minimal' } }
+@@ -204,7 +231,7 @@ exports.handler = async (event) => {
+return json(502, { error: 'db delete failed', detail: t });
+}
+
+        // Best effort: delete storage object by deriving objectPath from image_url
+        // Best-effort delete object in storage
+if (row && row.image_url) {
+const objectPath = extractObjectPath(row.image_url, BUCKET);
+if (objectPath) {
