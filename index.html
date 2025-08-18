@@ -1,15 +1,4 @@
-        // Gallery images data - you can update the locations here
-        const galleryImages = [
-            {
-                src: 'photos/gallery-1.jpg',
-                location: 'Monterey, CA'
-            },
-            {
-                src: 'photos/gallery-2.jpg',
-                location: 'Monterey, CA'
-            },
-            {
-                src: 'photos/gallery-3.jpg',        /* Footer */<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,6 +8,7 @@
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
+    
     <style>
         * {
             margin: 0;
@@ -31,7 +21,7 @@
             line-height: 1.6;
             color: #2c2c2c;
             overflow-x: hidden;
-            margin-left: 280px; /* Make room for sidebar */
+            margin-left: 280px;
         }
 
         /* Sidebar */
@@ -278,7 +268,6 @@
             transform: scale(1.05);
         }
 
-        /* Placeholder for missing images */
         .placeholder {
             background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
             display: flex;
@@ -287,63 +276,6 @@
             color: #666;
             font-size: 1.1rem;
             font-weight: 500;
-        }
-
-        /* Features Section */
-        .features-section {
-            margin-top: 6rem;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .feature-item {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .feature-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(138, 154, 142, 0.2);
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, #8A9A8E, #6B7A6F);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: transform 0.3s ease;
-        }
-
-        .feature-item:hover .feature-icon {
-            transform: scale(1.1);
-        }
-
-        .feature-item h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #2c2c2c;
-        }
-
-        .feature-item p {
-            color: #666;
-            line-height: 1.6;
         }
 
         /* Lightbox Styles */
@@ -454,35 +386,7 @@
             right: 2rem;
         }
 
-        @media (max-width: 768px) {
-            .lightbox-close {
-                top: 1rem;
-                right: 1rem;
-                width: 40px;
-                height: 40px;
-                font-size: 1.5rem;
-            }
-            
-            .lightbox-nav {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-            }
-            
-            .lightbox-prev {
-                left: 1rem;
-            }
-            
-            .lightbox-next {
-                right: 1rem;
-            }
-            
-            .lightbox-caption {
-                font-size: 0.9rem;
-                margin-top: 1rem;
-                padding: 0.5rem 1rem;
-            }
-        }
+        /* Footer */
         footer {
             background: #8A9A8E;
             color: white;
@@ -564,10 +468,6 @@
                 padding: 0.5rem;
             }
             
-            .nav-links {
-                display: none;
-            }
-            
             .hero {
                 padding-top: 80px;
                 height: calc(100vh - 80px);
@@ -594,9 +494,36 @@
             .sidebar {
                 width: 100%;
             }
+            
+            .lightbox-close {
+                top: 1rem;
+                right: 1rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+            }
+            
+            .lightbox-nav {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .lightbox-prev {
+                left: 1rem;
+            }
+            
+            .lightbox-next {
+                right: 1rem;
+            }
+            
+            .lightbox-caption {
+                font-size: 0.9rem;
+                margin-top: 1rem;
+                padding: 0.5rem 1rem;
+            }
         }
 
-        /* Smooth scrolling */
         html {
             scroll-behavior: smooth;
         }
@@ -719,33 +646,31 @@
     </footer>
 
     <script>
-        // Gallery images data - you can update the locations here
         const galleryImages = [
             {
                 src: 'photos/gallery-1.jpg',
-                location: 'Location 1' // Replace with actual location
+                location: 'Monterey, CA'
             },
             {
                 src: 'photos/gallery-2.jpg',
-                location: 'Location 2' // Replace with actual location
+                location: 'Monterey, CA'
             },
             {
                 src: 'photos/gallery-3.jpg',
-                location: 'Location 3' // Replace with actual location
+                location: 'San Francisco, CA'
             },
             {
                 src: 'photos/gallery-4.jpg',
-                location: 'Location 4' // Replace with actual location
+                location: 'Los Angeles, CA'
             },
             {
                 src: 'photos/gallery-5.jpg',
-                location: 'Location 5' // Replace with actual location
+                location: 'Los Angeles, CA'
             }
         ];
 
         let currentImageIndex = 0;
 
-        // Lightbox functionality
         function openLightbox(index) {
             currentImageIndex = index;
             const lightbox = document.getElementById('lightbox');
@@ -755,16 +680,12 @@
             lightboxImage.src = galleryImages[index].src;
             lightboxCaption.textContent = galleryImages[index].location;
             lightbox.classList.add('active');
-            
-            // Prevent body scroll
             document.body.style.overflow = 'hidden';
         }
 
         function closeLightbox() {
             const lightbox = document.getElementById('lightbox');
             lightbox.classList.remove('active');
-            
-            // Restore body scroll
             document.body.style.overflow = 'auto';
         }
 
@@ -786,7 +707,6 @@
             lightboxCaption.textContent = galleryImages[currentImageIndex].location;
         }
 
-        // Close lightbox with escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeLightbox();
@@ -797,20 +717,17 @@
             }
         });
 
-        // Close lightbox when clicking outside image
         document.getElementById('lightbox').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeLightbox();
             }
         });
 
-        // Mobile sidebar toggle
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('open');
         }
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(event) {
             const sidebar = document.querySelector('.sidebar');
             const menuBtn = document.querySelector('.mobile-menu-btn');
@@ -823,7 +740,6 @@
             }
         });
 
-        // Smooth scrolling for navigation links
         document.querySelectorAll('.nav-link').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -834,11 +750,9 @@
                         block: 'start'
                     });
                     
-                    // Update active state
                     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Close mobile sidebar
                     if (window.innerWidth <= 1024) {
                         document.querySelector('.sidebar').classList.remove('open');
                     }
@@ -846,7 +760,6 @@
             });
         });
 
-        // Update active nav on scroll
         window.addEventListener('scroll', function() {
             const sections = ['home', 'gallery', 'journal'];
             const scrollPos = window.scrollY + 200;
@@ -860,7 +773,6 @@
             });
         });
 
-        // Intersection Observer for animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -875,7 +787,6 @@
             });
         }, observerOptions);
 
-        // Observe gallery items for scroll animations
         document.querySelectorAll('.gallery-item').forEach(item => {
             item.style.opacity = '0';
             item.style.transform = 'translateY(30px)';
