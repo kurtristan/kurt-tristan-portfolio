@@ -8,6 +8,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #2c2c2c; }
         
+        /* Login Screen */
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #8A9A8E 0%, #6B7A6F 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .login-container { background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 400px; width: 90%; text-align: center; }
+        .login-header h1 { font-size: 2rem; color: #2c2c2c; margin-bottom: 0.5rem; }
+        .login-header p { color: #8A9A8E; margin-bottom: 2rem; font-weight: 500; }
+        .login-form { margin-bottom: 1rem; }
+        .login-btn { width: 100%; margin-top: 1rem; }
+        .login-btn:hover { transform: translateY(-2px); }
+        
         /* Header */
         .admin-header { background: #8A9A8E; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
         .admin-header h1 { font-size: 1.5rem; font-weight: 700; }
@@ -79,16 +88,42 @@
     </style>
 </head>
 <body>
-    <!-- Admin Header -->
-    <div class="admin-header">
-        <div>
-            <h1>Kurt Tristan - Admin Panel</h1>
-            <div class="subtitle">Manage your photography portfolio</div>
-        </div>
-        <div>
-            <a href="/" class="btn btn-secondary">View Website</a>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <div style="width: 60px; height: 60px; background: #8A9A8E; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+                    </svg>
+                </div>
+                <h1>Kurt Tristan</h1>
+                <p>Admin Panel Access</p>
+            </div>
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="btn btn-primary login-btn">Access Admin Panel</button>
+            </form>
+            <div id="login-error" class="message error" style="display: none;"></div>
         </div>
     </div>
+
+    <!-- Admin Interface (Hidden by default) -->
+    <div id="admin-interface" style="display: none;">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <div>
+                <h1>Kurt Tristan - Admin Panel</h1>
+                <div class="subtitle">Manage your photography portfolio</div>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="logout()">🔒 Logout</button>
+                <a href="/" class="btn btn-secondary">View Website</a>
+            </div>
+        </div>
 
     <!-- Admin Container -->
     <div class="admin-container">
@@ -175,6 +210,52 @@
     </div>
 
     <script>
+        // Admin Authentication
+        const ADMIN_PASSWORD = 'WanderingWondering247!'; // Change this to your desired password
+        let isAuthenticated = false;
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (password === ADMIN_PASSWORD) {
+                isAuthenticated = true;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-interface').style.display = 'block';
+                
+                // Initialize admin interface
+                refreshGallery();
+                refreshJournal();
+            } else {
+                errorDiv.textContent = 'Incorrect password. Please try again.';
+                errorDiv.style.display = 'block';
+                document.getElementById('password').value = '';
+                
+                // Hide error after 3 seconds
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                isAuthenticated = false;
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('admin-interface').style.display = 'none';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // Prevent access to admin functions without authentication
+        function checkAuth() {
+            if (!isAuthenticated) {
+                showMessage('Please login first.', 'error');
+                return false;
+            }
+            return true;
+        }
         // Data Storage
         let galleryData = [
             { src: 'photos/gallery-1.jpg', location: 'Monterey, CA' },
@@ -264,6 +345,8 @@
         });
 
         function addPhoto() {
+            if (!checkAuth()) return;
+            
             const location = document.getElementById('photo-location').value.trim();
             const fileInput = document.getElementById('photo-input');
             
@@ -317,6 +400,8 @@
         }
 
         function addJournalEntry() {
+            if (!checkAuth()) return;
+            
             const title = document.getElementById('entry-title').value.trim();
             const date = document.getElementById('entry-date').value;
             const content = document.getElementById('entry-content').value.trim();
