@@ -33,7 +33,7 @@
 
     /* Hero */
     .hero { height: 100vh; background: linear-gradient(135deg,#8A9A8E 0%,#6B7A6F 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: url('photos/hero-image.jpg') center/cover; opacity: 0; z-index:1; }
+    .hero::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: url('photos/hero-image.jpg') center/cover; opacity: 0; z-index:1; animation: heroFadeIn 2s ease 1s forwards; }
     .hero-content { position: relative; z-index:2; max-width: 800px; padding: 0 2rem; }
     .hero h1 { font-size: clamp(3rem,8vw,6rem); font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -2px; opacity:0; animation: fadeInUp 1s ease .5s forwards; }
     .hero p { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; opacity:0; animation: fadeInUp 1s ease .7s forwards; }
@@ -73,6 +73,7 @@
     .footer-content p { font-size:1rem; opacity:0.8; }
 
     @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
+    @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.6;} }
 
     /* Responsive */
     @media (max-width:1024px) { body{margin-left:0;} .sidebar{transform:translateX(-100%);transition:.3s;} .sidebar.open{transform:translateX(0);} header{display:block; position:fixed; top:0; width:100%; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); z-index:1001; padding:1rem 0;} nav{max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0 2rem;} .logo{font-size:1.5rem; font-weight:700; color:#2c2c2c; text-decoration:none;} .mobile-menu-btn{background:none; border:none; font-size:1.5rem; color:#2c2c2c; cursor:pointer;} .hero{padding-top:80px; height:calc(100vh - 80px);} }
@@ -128,7 +129,7 @@
   </div>
 
   <!-- Footer -->
-  <footer id="journal"><div class="footer-content"><p>&copy; 2024 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
+  <footer id="journal"><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
 
   <script>
     // Gallery images data
