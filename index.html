@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kurt Tristan - Wander & Wonder</title>
-  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder">
+  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder" />
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
@@ -63,7 +63,7 @@
     .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
     .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
 
-    /* Placeholder */
+    /* Placeholder (for missing images) */
     .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
 
     /* Lightbox */
@@ -107,11 +107,20 @@
   </div>
 
   <!-- Mobile Header -->
-  <header><nav><a href="#" class="logo">Kurt Tristan</a><button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button></nav></header>
+  <header>
+    <nav>
+      <a href="#" class="logo">Kurt Tristan</a>
+      <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    </nav>
+  </header>
 
   <!-- Hero -->
   <section class="hero" id="home">
-    <div class="hero-content"><h1>Wander & Wonder</h1><p>When is Anything Ever Always?</p><a href="#gallery" class="cta-button">Explore Gallery</a></div>
+    <div class="hero-content">
+      <h1>Wander & Wonder</h1>
+      <p>When is Anything Ever Always?</p>
+      <a href="#gallery" class="cta-button">Explore Gallery</a>
+    </div>
   </section>
 
   <!-- Gallery -->
@@ -122,9 +131,8 @@
         <p>A curated selection of moments and memories captured.</p>
       </div>
       <div class="gallery-grid" id="gallery-grid">
-        <!-- dynamically injected -->
+        <!-- Filled by fetchGallery(); fallback added if needed -->
       </div>
-      <div id="gallery-error" style="text-align:center; color:#8A9A8E;"></div>
     </div>
   </section>
 
@@ -132,16 +140,8 @@
   <section class="journal" id="journal">
     <div class="journal-container">
       <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and memories.</p></div>
-      <div class="journal-entries">
-        <article class="journal-entry">
-          <div class="entry-header">
-            <h3>Moment</h3>
-            <time>May 25, 2025</time>
-          </div>
-          <div class="entry-content">
-            <p>The problem isn't just capturing the image, it's capturing the emotions I held while also being in that moment. Moment. I now understand what people mean when they want to write a song, a poem, paint, or take the perfect photo. Maybe that's why I am ever rarely satisfied with anything I create— it's because I struggle to capture the Moment completely.</p>
-          </div>
-        </article>
+      <div class="journal-entries" id="journal-entries">
+        <!-- Filled by fetchJournal(); fallback added if needed -->
       </div>
     </div>
   </section>
@@ -158,71 +158,16 @@
   </div>
 
   <!-- Footer -->
-  <footer><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p>
+    </div>
+  </footer>
 
   <script>
-    // ---- dynamic gallery load from Netlify function ----
-    let galleryImages = [];
+    // ========== Lightbox & Shared State ==========
+    let galleryImages = []; // [{src, location}]
     let currentImageIndex = 0;
-
-    async function loadGallery() {
-      const grid = document.getElementById('gallery-grid');
-      const err = document.getElementById('gallery-error');
-      grid.innerHTML = '<div style="text-align:center; grid-column:1/-1;">Loading…</div>';
-      err.textContent = '';
-
-      try {
-        const res = await fetch('/.netlify/functions/gallery', { headers: { 'Accept': 'application/json' }});
-        if (!res.ok) {
-          const txt = await res.text().catch(() => '');
-          throw new Error(`Gallery request failed (${res.status}) ${txt}`);
-        }
-        const data = await res.json();
-        // Normalize: prefer image_url, fallback to src
-        galleryImages = (data || []).map(d => ({
-          src: d.image_url || d.src,
-          location: d.location || ''
-        })).filter(d => !!d.src);
-
-        if (galleryImages.length === 0) {
-          grid.innerHTML = '<div style="text-align:center; grid-column:1/-1;">No photos yet.</div>';
-          return;
-        }
-
-        // Build cards
-        grid.innerHTML = '';
-        galleryImages.forEach((item, index) => {
-          const div = document.createElement('div');
-          div.className = 'gallery-item';
-          div.onclick = () => openLightbox(index);
-
-          const img = document.createElement('img');
-          img.src = item.src;
-          img.alt = `Adventure ${index + 1}`;
-          img.onerror = function () {
-            this.style.display = 'none';
-            div.classList.add('placeholder');
-            div.innerHTML = '<div>Image Coming Soon</div>';
-          };
-
-          div.appendChild(img);
-          grid.appendChild(div);
-        });
-
-        // animate items on scroll
-        document.querySelectorAll('.gallery-item').forEach(item => {
-          item.style.opacity='0';
-          item.style.transform='translateY(30px)';
-          item.style.transition='all 0.6s ease';
-          observer.observe(item);
-        });
-
-      } catch (e) {
-        console.error(e);
-        err.textContent = 'Failed to load gallery. Please try again later.';
-        grid.innerHTML = '';
-      }
-    }
 
     function openLightbox(index) {
       currentImageIndex = index;
@@ -234,59 +179,139 @@
       lightbox.classList.add('active');
       document.body.style.overflow='hidden';
     }
-    function closeLightbox(){document.getElementById('lightbox').classList.remove('active'); document.body.style.overflow='auto';}
-    function nextImage(){currentImageIndex=(currentImageIndex+1)%galleryImages.length; updateLightboxImage();}
-    function previousImage(){currentImageIndex=(currentImageIndex-1+galleryImages.length)%galleryImages.length; updateLightboxImage();}
+    function closeLightbox(){ document.getElementById('lightbox').classList.remove('active'); document.body.style.overflow='auto'; }
+    function nextImage(){ currentImageIndex=(currentImageIndex+1)%galleryImages.length; updateLightboxImage(); }
+    function previousImage(){ currentImageIndex=(currentImageIndex-1+galleryImages.length)%galleryImages.length; updateLightboxImage(); }
     function updateLightboxImage(){
       const img=document.getElementById('lightbox-image');
       const caption=document.getElementById('lightbox-caption');
       img.src=galleryImages[currentImageIndex].src;
       caption.textContent=galleryImages[currentImageIndex].location || '';
     }
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); else if(e.key==='ArrowRight')nextImage(); else if(e.key==='ArrowLeft')previousImage();});
+    document.getElementById('lightbox').addEventListener('click',e=>{ if(e.target===e.currentTarget)closeLightbox(); });
 
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox(); else if(e.key==='ArrowRight')nextImage(); else if(e.key==='ArrowLeft')previousImage();});
-    document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLightbox();});
-
-    function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');}
-    document.addEventListener('click',e=>{const sidebar=document.querySelector('.sidebar'); const btn=document.querySelector('.mobile-menu-btn'); if(window.innerWidth<=1024 && !sidebar.contains(e.target)&&!btn.contains(e.target)&&sidebar.classList.contains('open'))sidebar.classList.remove('open');});
-
-    document.querySelectorAll('.nav-link').forEach(anchor=>{
-      anchor.addEventListener('click',function(e){
-        e.preventDefault();
-        const target=document.querySelector(this.getAttribute('href'));
-        if(target){
-          target.scrollIntoView({behavior:'smooth'});
-          document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-          this.classList.add('active');
-          if(window.innerWidth<=1024)document.querySelector('.sidebar').classList.remove('open');
-        }
+    // ========== Sidebar / Nav UI ==========
+    function toggleSidebar(){ document.querySelector('.sidebar').classList.toggle('open'); }
+    document.addEventListener('click',e=>{
+      const sidebar=document.querySelector('.sidebar'); const btn=document.querySelector('.mobile-menu-btn');
+      if(window.innerWidth<=1024 && !sidebar.contains(e.target)&&!btn.contains(e.target)&&sidebar.classList.contains('open')) sidebar.classList.remove('open');
+    });
+    document.querySelectorAll('.nav-link').forEach(a=>{
+      a.addEventListener('click',function(e){
+        e.preventDefault(); const target=document.querySelector(this.getAttribute('href'));
+        if(target){ target.scrollIntoView({behavior:'smooth'}); document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); this.classList.add('active'); if(window.innerWidth<=1024)document.querySelector('.sidebar').classList.remove('open'); }
       });
     });
-
     window.addEventListener('scroll',()=>{
-      const sections=['home','gallery','journal'];
-      const pos=window.scrollY+200;
+      const sections=['home','gallery','journal']; const pos=window.scrollY+200;
       sections.forEach(id=>{
         const el=document.getElementById(id);
         if(el && pos>=el.offsetTop && pos<el.offsetTop+el.offsetHeight){
           document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-          const link=document.querySelector(`.nav-link[href="#${id}"]`);
-          if (link) link.classList.add('active');
+          const active=document.querySelector(`.nav-link[href="#${id}"]`); if(active) active.classList.add('active');
         }
       });
     });
 
+    // ========== Intersection Observer (fade in) ==========
     const observer=new IntersectionObserver(entries=>{
       entries.forEach(entry=>{
-        if(entry.isIntersecting){
-          entry.target.style.opacity='1';
-          entry.target.style.transform='translateY(0)';
-        }
+        if(entry.isIntersecting){ entry.target.style.opacity='1'; entry.target.style.transform='translateY(0)'; }
       });
     },{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
 
-    // kick off
-    loadGallery();
+    // ========== Data Fetching ==========
+    async function fetchGallery() {
+      const grid = document.getElementById('gallery-grid');
+      try {
+        const res = await fetch('/.netlify/functions/gallery', { cache: 'no-store' });
+        const items = await res.json();
+        if (!Array.isArray(items) || items.length === 0) throw new Error('No items');
+
+        // Normalize to {src, location}
+        galleryImages = items.map(x => ({
+          src: x.image_url || x.src || x.url || '',
+          location: x.location || ''
+        })).filter(g => g.src);
+
+        // Render grid with indices matching galleryImages
+        grid.innerHTML = galleryImages.map((g, i) => `
+          <div class="gallery-item" onclick="openLightbox(${i})">
+            <img src="${g.src}" alt="Photo ${i+1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.warn('Gallery function failed, using fallback:', err);
+        // Fallback to your original six
+        const fallback = [
+          { src: 'photos/gallery-1.jpg', location: 'Monterey, CA' },
+          { src: 'photos/gallery-2.jpg', location: 'Monterey, CA' },
+          { src: 'photos/gallery-3.jpg', location: 'San Francisco, CA' },
+          { src: 'photos/gallery-4.jpg', location: 'Los Angeles, CA' },
+          { src: 'photos/gallery-5.jpg', location: 'Los Angeles, CA' },
+          { src: 'photos/gallery-6.jpg', location: 'San Jose, CA' }
+        ];
+        galleryImages = fallback;
+        grid.innerHTML = fallback.map((g, i) => `
+          <div class="gallery-item" onclick="openLightbox(${i})">
+            <img src="${g.src}" alt="Adventure ${i+1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
+          </div>
+        `).join('');
+      }
+
+      // Animate items on scroll
+      document.querySelectorAll('.gallery-item').forEach(item=>{
+        item.style.opacity='0'; item.style.transform='translateY(30px)'; item.style.transition='all 0.6s ease';
+        observer.observe(item);
+      });
+    }
+
+    async function fetchJournal() {
+      const wrap = document.getElementById('journal-entries');
+      try {
+        const res = await fetch('/.netlify/functions/journal', { cache: 'no-store' });
+        const entries = await res.json();
+        if (!Array.isArray(entries) || entries.length === 0) throw new Error('No entries');
+
+        wrap.innerHTML = entries.map(entry => `
+          <article class="journal-entry">
+            <div class="entry-header">
+              <h3>${entry.title || 'Untitled'}</h3>
+              <time>${entry.date || new Date(entry.created_at || Date.now()).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}</time>
+            </div>
+            <div class="entry-content">
+              <p>${(entry.content || entry.body || '').replace(/\n/g,'<br>')}</p>
+            </div>
+          </article>
+        `).join('');
+
+      } catch (err) {
+        console.warn('Journal function failed, using fallback:', err);
+        wrap.innerHTML = `
+          <article class="journal-entry">
+            <div class="entry-header">
+              <h3>Moment</h3>
+              <time>May 25, 2025</time>
+            </div>
+            <div class="entry-content">
+              <p>The problem isn't just capturing the image, it's capturing the emotions I held while also being in that moment. Moment. I now understand what people mean when they want to write a song, a poem, paint, or take the perfect photo. Maybe that's why I am ever rarely satisfied with anything I create — it's because I struggle to capture the Moment completely.</p>
+            </div>
+          </article>
+        `;
+      }
+
+      // Animate journal entries
+      document.querySelectorAll('.journal-entry').forEach(item=>{
+        item.style.opacity='0'; item.style.transform='translateY(30px)'; item.style.transition='all 0.6s ease';
+        observer.observe(item);
+      });
+    }
+
+    // Kickoff
+    fetchGallery();
+    fetchJournal();
   </script>
 </body>
 </html>
