@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurt Tristan - Wander & Wonder</title>
     <meta name="description" content="Kurt Tristan - Photographer & Explorer capturing moments of wonder">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2'><path d='m8 3 4 8 5-5 5 15H2L8 3z'/></svg>" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'><path d='m8 3 4 8 5-5 5 15H2L8 3z'/></svg>" type="image/svg+xml">
     <style>
         * {
             margin: 0;
@@ -40,31 +44,12 @@
             padding: 0 2rem 3rem 2rem;
             border-bottom: 1px solid rgba(138, 154, 142, 0.1);
             margin-bottom: 3rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .sidebar-logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #8A9A8E, #6B7A6F);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .sidebar-logo-text {
-            flex: 1;
         }
 
         .sidebar-logo h1 {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #2c2c2c;
+            color: #8A9A8E;
             margin: 0;
         }
 
@@ -113,14 +98,22 @@
             color: #8A9A8E;
         }
 
-        .sidebar-nav a::before {
-            content: '';
-            width: 6px;
-            height: 6px;
+        .nav-icon {
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            background: currentColor;
+            background: #8A9A8E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-right: 1rem;
-            opacity: 0.6;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .nav-icon svg {
+            width: 14px;
+            height: 14px;
         }
 
         .sidebar-footer {
@@ -162,7 +155,7 @@
             right: 0;
             bottom: 0;
             background: url('photos/hero-image.jpg') center/cover;
-            opacity: 0.15;
+            opacity: 0;
             z-index: 1;
         }
 
@@ -502,22 +495,43 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-logo">
-            <div class="sidebar-logo-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
-                </svg>
-            </div>
-            <div class="sidebar-logo-text">
-                <h1>Kurt Tristan</h1>
-                <p>Photographer & Explorer</p>
-            </div>
+            <h1>Kurt Tristan</h1>
+            <p>Photographer & Explorer</p>
         </div>
         
         <nav class="sidebar-nav">
             <ul>
-                <li><a href="#home" class="nav-link active">Home</a></li>
-                <li><a href="#gallery" class="nav-link">Gallery</a></li>
-                <li><a href="#contact" class="nav-link">Contact</a></li>
+                <li>
+                    <a href="#home" class="nav-link active">
+                        <div class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+                            </svg>
+                        </div>
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a href="#gallery" class="nav-link">
+                        <div class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                                <circle cx="12" cy="13" r="3"/>
+                            </svg>
+                        </div>
+                        Gallery
+                    </a>
+                </li>
+                <li>
+                    <a href="#journal" class="nav-link">
+                        <div class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                            </svg>
+                        </div>
+                        Journal
+                    </a>
+                </li>
             </ul>
         </nav>
         
@@ -606,7 +620,7 @@
     </section>
 
     <!-- Footer -->
-    <footer id="contact">
+    <footer id="journal">
         <div class="footer-content">
             <p>&copy; 2024 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p>
         </div>
@@ -657,7 +671,7 @@
 
         // Update active nav on scroll
         window.addEventListener('scroll', function() {
-            const sections = ['home', 'gallery', 'contact'];
+            const sections = ['home', 'gallery', 'journal'];
             const scrollPos = window.scrollY + 200;
             
             sections.forEach(section => {
