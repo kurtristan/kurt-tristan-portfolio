@@ -1,4 +1,15 @@
-<!DOCTYPE html>
+        // Gallery images data - you can update the locations here
+        const galleryImages = [
+            {
+                src: 'photos/gallery-1.jpg',
+                location: 'Monterey, CA'
+            },
+            {
+                src: 'photos/gallery-2.jpg',
+                location: 'Monterey, CA'
+            },
+            {
+                src: 'photos/gallery-3.jpg',        /* Footer */<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,7 +60,7 @@
         .sidebar-logo h1 {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #8A9A8E;
+            color: #2c2c2c;
             margin: 0;
         }
 
@@ -268,41 +279,6 @@
             transform: scale(1.05);
         }
 
-        .gallery-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .gallery-item:hover .gallery-overlay {
-            opacity: 1;
-        }
-
-        .gallery-text {
-            text-align: center;
-            color: white;
-            padding: 2rem;
-        }
-
-        .gallery-text h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .gallery-text p {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
         /* Placeholder for missing images */
         .placeholder {
             background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
@@ -371,7 +347,143 @@
             line-height: 1.6;
         }
 
-        /* Footer */
+        /* Lightbox Styles */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 95vw;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-caption {
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-top: 1.5rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-prev {
+            left: 2rem;
+        }
+
+        .lightbox-next {
+            right: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .lightbox-close {
+                top: 1rem;
+                right: 1rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1.5rem;
+            }
+            
+            .lightbox-nav {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .lightbox-prev {
+                left: 1rem;
+            }
+            
+            .lightbox-next {
+                right: 1rem;
+            }
+            
+            .lightbox-caption {
+                font-size: 0.9rem;
+                margin-top: 1rem;
+                padding: 0.5rem 1rem;
+            }
+        }
         footer {
             background: #8A9A8E;
             color: white;
@@ -566,58 +678,39 @@
             </div>
             
             <div class="gallery-grid">
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(0)">
                     <img src="photos/gallery-1.jpg" alt="Adventure 1" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
-                    <div class="gallery-overlay">
-                        <div class="gallery-text">
-                            <h3>Mountain Peaks</h3>
-                            <p>Breathtaking views from above the clouds</p>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(1)">
                     <img src="photos/gallery-2.jpg" alt="Adventure 2" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
-                    <div class="gallery-overlay">
-                        <div class="gallery-text">
-                            <h3>Ocean Depths</h3>
-                            <p>Exploring the mysteries beneath the waves</p>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(2)">
                     <img src="photos/gallery-3.jpg" alt="Adventure 3" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
-                    <div class="gallery-overlay">
-                        <div class="gallery-text">
-                            <h3>Street Colors</h3>
-                            <p>Vibrant urban landscapes and details</p>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(3)">
                     <img src="photos/gallery-4.jpg" alt="Adventure 4" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
-                    <div class="gallery-overlay">
-                        <div class="gallery-text">
-                            <h3>Urban Stories</h3>
-                            <p>Finding narratives in city details</p>
-                        </div>
-                    </div>
                 </div>
                 
-                <div class="gallery-item">
+                <div class="gallery-item" onclick="openLightbox(4)">
                     <img src="photos/gallery-5.jpg" alt="Adventure 5" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
-                    <div class="gallery-overlay">
-                        <div class="gallery-text">
-                            <h3>Golden Hour</h3>
-                            <p>Capturing light and nostalgia</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="previousImage()">&#8249;</button>
+        <button class="lightbox-nav lightbox-next" onclick="nextImage()">&#8250;</button>
+        <div class="lightbox-content">
+            <img class="lightbox-image" id="lightbox-image" src="" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer id="journal">
@@ -627,6 +720,91 @@
     </footer>
 
     <script>
+        // Gallery images data - you can update the locations here
+        const galleryImages = [
+            {
+                src: 'photos/gallery-1.jpg',
+                location: 'Location 1' // Replace with actual location
+            },
+            {
+                src: 'photos/gallery-2.jpg',
+                location: 'Location 2' // Replace with actual location
+            },
+            {
+                src: 'photos/gallery-3.jpg',
+                location: 'Location 3' // Replace with actual location
+            },
+            {
+                src: 'photos/gallery-4.jpg',
+                location: 'Location 4' // Replace with actual location
+            },
+            {
+                src: 'photos/gallery-5.jpg',
+                location: 'Location 5' // Replace with actual location
+            }
+        ];
+
+        let currentImageIndex = 0;
+
+        // Lightbox functionality
+        function openLightbox(index) {
+            currentImageIndex = index;
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightbox-image');
+            const lightboxCaption = document.getElementById('lightbox-caption');
+            
+            lightboxImage.src = galleryImages[index].src;
+            lightboxCaption.textContent = galleryImages[index].location;
+            lightbox.classList.add('active');
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            
+            // Restore body scroll
+            document.body.style.overflow = 'auto';
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+            updateLightboxImage();
+        }
+
+        function previousImage() {
+            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+            updateLightboxImage();
+        }
+
+        function updateLightboxImage() {
+            const lightboxImage = document.getElementById('lightbox-image');
+            const lightboxCaption = document.getElementById('lightbox-caption');
+            
+            lightboxImage.src = galleryImages[currentImageIndex].src;
+            lightboxCaption.textContent = galleryImages[currentImageIndex].location;
+        }
+
+        // Close lightbox with escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft') {
+                previousImage();
+            }
+        });
+
+        // Close lightbox when clicking outside image
+        document.getElementById('lightbox').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLightbox();
+            }
+        });
+
         // Mobile sidebar toggle
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
