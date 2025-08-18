@@ -15,7 +15,7 @@
 // Requires node-fetch@2 in dependencies if your site runs Node 16:
 //   npm i node-fetch@2
 
-const fetch = globalThis.fetch || require('node-fetch');
+const fetch = globalThis.fetch;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
