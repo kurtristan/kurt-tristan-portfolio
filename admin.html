@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Kurt Tristan</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #2c2c2c; }
+        
+        /* Header */
+        .admin-header { background: #8A9A8E; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .admin-header h1 { font-size: 1.5rem; font-weight: 700; }
+        .admin-header .subtitle { font-size: 0.9rem; opacity: 0.8; }
+        
+        /* Container */
+        .admin-container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        
+        /* Navigation Tabs */
+        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+        .tab-button { padding: 1rem 2rem; background: white; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; font-weight: 500; transition: all 0.3s; }
+        .tab-button.active { background: #8A9A8E; color: white; border-color: #8A9A8E; }
+        .tab-button:hover { border-color: #8A9A8E; }
+        
+        /* Tab Content */
+        .tab-content { display: none; background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .tab-content.active { display: block; }
+        
+        /* Form Styles */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #2c2c2c; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #8A9A8E; }
+        .form-group textarea { resize: vertical; min-height: 120px; }
+        
+        /* Buttons */
+        .btn { padding: 1rem 2rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #8A9A8E; color: white; }
+        .btn-primary:hover { background: #6B7A6F; transform: translateY(-2px); }
+        .btn-secondary { background: #F5F1E8; color: #2c2c2c; border: 2px solid #ddd; }
+        .btn-secondary:hover { border-color: #8A9A8E; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        
+        /* Gallery Manager */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .gallery-card { background: #f9f9f9; border-radius: 10px; padding: 1rem; border: 2px solid #ddd; }
+        .gallery-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
+        .gallery-card h4 { margin-bottom: 0.5rem; }
+        .gallery-card p { color: #666; margin-bottom: 1rem; }
+        
+        /* Journal Manager */
+        .journal-entries { margin-bottom: 2rem; }
+        .journal-card { background: #F5F1E8; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; border: 2px solid #ddd; }
+        .journal-card h3 { margin-bottom: 0.5rem; color: #2c2c2c; }
+        .journal-card .date { color: #8A9A8E; font-weight: 500; margin-bottom: 1rem; }
+        .journal-card .content { color: #666; line-height: 1.6; }
+        
+        /* Code Output */
+        .code-output { background: #2c2c2c; color: #f8f8f2; padding: 1.5rem; border-radius: 10px; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9rem; overflow-x: auto; margin-top: 2rem; }
+        .code-output pre { margin: 0; white-space: pre-wrap; }
+        
+        /* Upload Area */
+        .upload-area { border: 3px dashed #8A9A8E; border-radius: 10px; padding: 3rem; text-align: center; margin-bottom: 2rem; transition: all 0.3s; cursor: pointer; }
+        .upload-area:hover { background: rgba(138, 154, 142, 0.1); }
+        .upload-area.dragover { background: rgba(138, 154, 142, 0.2); border-color: #6B7A6F; }
+        
+        /* Success/Error Messages */
+        .message { padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-container { padding: 0 1rem; }
+            .admin-tabs { flex-direction: column; }
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div>
+            <h1>Kurt Tristan - Admin Panel</h1>
+            <div class="subtitle">Manage your photography portfolio</div>
+        </div>
+        <div>
+            <a href="/" class="btn btn-secondary">View Website</a>
+        </div>
+    </div>
+
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Navigation Tabs -->
+        <div class="admin-tabs">
+            <div class="tab-button active" onclick="showTab('gallery')">📸 Gallery Manager</div>
+            <div class="tab-button" onclick="showTab('journal')">✍️ Journal Manager</div>
+            <div class="tab-button" onclick="showTab('export')">💾 Export Code</div>
+        </div>
+
+        <!-- Gallery Manager Tab -->
+        <div id="gallery-tab" class="tab-content active">
+            <h2>Gallery Manager</h2>
+            <p>Manage your photography gallery and locations</p>
+
+            <!-- Current Gallery -->
+            <h3>Current Photos</h3>
+            <div class="gallery-grid" id="current-gallery">
+                <!-- Gallery items will be populated by JavaScript -->
+            </div>
+
+            <!-- Add New Photo -->
+            <h3>Add New Photo</h3>
+            <div class="upload-area" id="photo-upload">
+                <p>📸 Click to select or drag & drop a photo</p>
+                <input type="file" id="photo-input" accept="image/*" style="display: none;">
+            </div>
+
+            <div class="form-group">
+                <label for="photo-location">Photo Location</label>
+                <input type="text" id="photo-location" placeholder="e.g., San Francisco, CA">
+            </div>
+
+            <button class="btn btn-primary" onclick="addPhoto()">Add Photo to Gallery</button>
+        </div>
+
+        <!-- Journal Manager Tab -->
+        <div id="journal-tab" class="tab-content">
+            <h2>Journal Manager</h2>
+            <p>Write and manage your journal entries</p>
+
+            <!-- Current Journal Entries -->
+            <h3>Current Entries</h3>
+            <div class="journal-entries" id="current-journal">
+                <!-- Journal entries will be populated by JavaScript -->
+            </div>
+
+            <!-- Add New Entry -->
+            <h3>Write New Entry</h3>
+            <div class="form-group">
+                <label for="entry-title">Entry Title</label>
+                <input type="text" id="entry-title" placeholder="Enter title...">
+            </div>
+
+            <div class="form-group">
+                <label for="entry-date">Entry Date</label>
+                <input type="date" id="entry-date">
+            </div>
+
+            <div class="form-group">
+                <label for="entry-content">Entry Content</label>
+                <textarea id="entry-content" placeholder="Write your journal entry here..."></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="addJournalEntry()">Add Journal Entry</button>
+        </div>
+
+        <!-- Export Code Tab -->
+        <div id="export-tab" class="tab-content">
+            <h2>Export Updated Code</h2>
+            <p>Generate your updated website code to copy to GitHub</p>
+
+            <button class="btn btn-primary" onclick="generateCode()">Generate Updated HTML Code</button>
+
+            <div id="generated-code" class="code-output" style="display: none;">
+                <pre id="code-content"></pre>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="copyCode()" id="copy-button" style="display: none;">📋 Copy Code</button>
+                <button class="btn btn-secondary" onclick="downloadCode()" id="download-button" style="display: none;">💾 Download HTML File</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let galleryData = [
+            { src: 'photos/gallery-1.jpg', location: 'Monterey, CA' },
+            { src: 'photos/gallery-2.jpg', location: 'Monterey, CA' },
+            { src: 'photos/gallery-3.jpg', location: 'San Francisco, CA' },
+            { src: 'photos/gallery-4.jpg', location: 'Los Angeles, CA' },
+            { src: 'photos/gallery-5.jpg', location: 'Los Angeles, CA' },
+            { src: 'photos/gallery-6.jpg', location: 'San Jose, CA' }
+        ];
+
+        let journalData = [
+            {
+                title: 'Moment',
+                date: 'May 25, 2025',
+                content: 'The problem isn\'t just capturing the image, it\'s capturing the emotions I held while also being in that moment. Moment. I now understand what people mean when they want to write a song, a poem, paint, or take the perfect photo. Maybe that\'s why I am ever rarely satisfied with anything I create— it\'s because I struggle to capture the Moment completely.'
+            }
+        ];
+
+        // Tab Management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            // Refresh content
+            if (tabName === 'gallery') refreshGallery();
+            if (tabName === 'journal') refreshJournal();
+        }
+
+        // Gallery Management
+        function refreshGallery() {
+            const container = document.getElementById('current-gallery');
+            container.innerHTML = '';
+            
+            galleryData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.innerHTML = `
+                    <img src="${item.src}" alt="Gallery ${index + 1}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4='">
+                    <h4>Gallery ${index + 1}</h4>
+                    <p>${item.location}</p>
+                    <button class="btn btn-secondary" onclick="editLocation(${index})">Edit Location</button>
+                    <button class="btn btn-danger" onclick="removePhoto(${index})">Remove</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function editLocation(index) {
+            const newLocation = prompt('Enter new location:', galleryData[index].location);
+            if (newLocation) {
+                galleryData[index].location = newLocation;
+                refreshGallery();
+                showMessage('Location updated successfully!', 'success');
+            }
+        }
+
+        function removePhoto(index) {
+            if (confirm('Are you sure you want to remove this photo?')) {
+                galleryData.splice(index, 1);
+                refreshGallery();
+                showMessage('Photo removed successfully!', 'success');
+            }
+        }
+
+        // Photo Upload
+        document.getElementById('photo-upload').addEventListener('click', () => {
+            document.getElementById('photo-input').click();
+        });
+
+        document.getElementById('photo-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('photo-upload').innerHTML = `
+                        <img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border-radius: 10px;">
+                        <p>Photo ready to add!</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function addPhoto() {
+            const location = document.getElementById('photo-location').value.trim();
+            const fileInput = document.getElementById('photo-input');
+            
+            if (!location) {
+                showMessage('Please enter a location for the photo.', 'error');
+                return;
+            }
+            
+            if (!fileInput.files[0]) {
+                showMessage('Please select a photo first.', 'error');
+                return;
+            }
+            
+            const newIndex = galleryData.length + 1;
+            galleryData.push({
+                src: `photos/gallery-${newIndex}.jpg`,
+                location: location
+            });
+            
+            // Reset form
+            document.getElementById('photo-location').value = '';
+            document.getElementById('photo-input').value = '';
+            document.getElementById('photo-upload').innerHTML = `
+                <p>📸 Click to select or drag & drop a photo</p>
+                <input type="file" id="photo-input" accept="image/*" style="display: none;">
+            `;
+            
+            refreshGallery();
+            showMessage(`Photo added! Upload as gallery-${newIndex}.jpg to your photos folder.`, 'success');
+        }
+
+        // Journal Management
+        function refreshJournal() {
+            const container = document.getElementById('current-journal');
+            container.innerHTML = '';
+            
+            journalData.forEach((entry, index) => {
+                const card = document.createElement('div');
+                card.className = 'journal-card';
+                card.innerHTML = `
+                    <h3>${entry.title}</h3>
+                    <div class="date">${entry.date}</div>
+                    <div class="content">${entry.content.substring(0, 200)}${entry.content.length > 200 ? '...' : ''}</div>
+                    <div style="margin-top: 1rem;">
+                        <button class="btn btn-secondary" onclick="editJournalEntry(${index})">Edit</button>
+                        <button class="btn btn-danger" onclick="removeJournalEntry(${index})">Remove</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addJournalEntry() {
+            const title = document.getElementById('entry-title').value.trim();
+            const date = document.getElementById('entry-date').value;
+            const content = document.getElementById('entry-content').value.trim();
+            
+            if (!title || !date || !content) {
+                showMessage('Please fill in all fields.', 'error');
+                return;
+            }
+            
+            const formattedDate = new Date(date).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            journalData.push({ title, date: formattedDate, content });
+            
+            // Reset form
+            document.getElementById('entry-title').value = '';
+            document.getElementById('entry-date').value = '';
+            document.getElementById('entry-content').value = '';
+            
+            refreshJournal();
+            showMessage('Journal entry added successfully!', 'success');
+        }
+
+        function editJournalEntry(index) {
+            const entry = journalData[index];
+            document.getElementById('entry-title').value = entry.title;
+            document.getElementById('entry-content').value = entry.content;
+            
+            // Remove old entry and scroll to form
+            journalData.splice(index, 1);
+            refreshJournal();
+            document.getElementById('entry-title').focus();
+            showMessage('Entry loaded for editing. Make changes and click "Add Journal Entry".', 'success');
+        }
+
+        function removeJournalEntry(index) {
+            if (confirm('Are you sure you want to remove this journal entry?')) {
+                journalData.splice(index, 1);
+                refreshJournal();
+                showMessage('Journal entry removed successfully!', 'success');
+            }
+        }
+
+        // Code Generation
+        function generateCode() {
+            const galleryHTML = galleryData.map((item, index) => 
+                `        <div class="gallery-item" onclick="openLightbox(${index})"><img src="${item.src}" alt="Adventure ${index + 1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'"></div>`
+            ).join('\n');
+            
+            const galleryJS = galleryData.map(item => 
+                `      { src: '${item.src}', location: '${item.location}' }`
+            ).join(',\n');
+            
+            const journalHTML = journalData.map(entry => `
+        <article class="journal-entry">
+          <div class="entry-header">
+            <h3>${entry.title}</h3>
+            <time>${entry.date}</time>
+          </div>
+          <div class="entry-content">
+            <p>${entry.content}</p>
+          </div>
+        </article>`).join('');
+
+            const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurt Tristan - Wander & Wonder</title>
+  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; color: #2c2c2c; overflow-x: hidden; margin-left: 280px; }
+
+    /* Sidebar */
+    .sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); z-index: 1000; padding: 2rem 0; display: flex; flex-direction: column; border-right: 1px solid rgba(138,154,142,0.1); }
+    .sidebar-logo { padding: 0 2rem 3rem 2rem; border-bottom: 1px solid rgba(138,154,142,0.1); margin-bottom: 3rem; }
+    .sidebar-logo h1 { font-size: 1.5rem; font-weight: 700; color: #2c2c2c; }
+    .sidebar-logo p { font-size: 0.9rem; color: #8A9A8E; margin-top: .5rem; font-weight: 500; }
+    .sidebar-nav { flex: 1; padding: 0 2rem; }
+    .sidebar-nav ul { list-style: none; }
+    .sidebar-nav li { margin-bottom: 1rem; }
+    .sidebar-nav a { display: flex; align-items: center; padding: 1rem 1.5rem; text-decoration: none; color: #666; border-radius: 12px; transition: all .3s ease; font-weight: 500; }
+    .sidebar-nav a:hover { background: rgba(138,154,142,0.1); color: #8A9A8E; transform: translateX(5px); }
+    .sidebar-nav a.active { background: rgba(138,154,142,0.15); color: #8A9A8E; }
+    .nav-icon { width: 24px; height: 24px; border-radius: 50%; background: #8A9A8E; display: flex; align-items: center; justify-content: center; margin-right: 1rem; color: white; }
+    .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(138,154,142,0.1); margin-top: auto; }
+    .sidebar-footer p { font-size: .8rem; color: #999; text-align: center; }
+
+    /* Header (mobile) */
+    header { display: none; }
+
+    /* Hero */
+    .hero { height: 100vh; background: linear-gradient(135deg,#8A9A8E 0%,#6B7A6F 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: url('photos/hero-image.jpg') center/cover; opacity: 0; z-index:1; animation: heroFadeIn 2s ease 1s forwards; }
+    .hero-content { position: relative; z-index:2; max-width: 800px; padding: 0 2rem; }
+    .hero h1 { font-size: clamp(3rem,8vw,6rem); font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -2px; opacity:0; animation: fadeInUp 1s ease .5s forwards; }
+    .hero p { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; opacity:0; animation: fadeInUp 1s ease .7s forwards; }
+    .cta-button { display:inline-block; padding:1rem 2.5rem; background:rgba(255,255,255,0.2); border:2px solid white; border-radius:50px; font-weight:600; color:white; text-decoration:none; transition:.3s; opacity:0; animation: fadeInUp 1s ease .9s forwards; }
+    .cta-button:hover { background:white; color:#8A9A8E; transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.2); }
+
+    /* Gallery */
+    .gallery { padding:8rem 0; background:#F5F1E8; }
+    .gallery-container { max-width:1400px; margin:0 auto; padding:0 2rem; }
+    .section-title { text-align:center; margin-bottom:4rem; }
+    .section-title h2 { font-size:3rem; font-weight:700; color:#2c2c2c; margin-bottom:1rem; }
+    .section-title p { font-size:1.2rem; color:#666; max-width:600px; margin:0 auto; }
+    .gallery-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap:2rem; margin-bottom:4rem; }
+    .gallery-item { position:relative; border-radius:20px; overflow:hidden; aspect-ratio:4/3; background:#ddd; transition:.3s; cursor:pointer; }
+    .gallery-item:hover { transform:translateY(-10px); box-shadow:0 20px 40px rgba(0,0,0,.15); }
+    .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+    .gallery-item:hover img { transform:scale(1.05); }
+
+    /* Journal */
+    .journal { padding:8rem 0; background:white; }
+    .journal-container { max-width:800px; margin:0 auto; padding:0 2rem; }
+    .journal-entries { display:flex; flex-direction:column; gap:3rem; }
+    .journal-entry { background:#F5F1E8; border-radius:20px; padding:3rem; transition:.3s; }
+    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.1); }
+    .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
+    .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
+    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
+    .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
+
+    /* Placeholder */
+    .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
+
+    /* Lightbox */
+    .lightbox { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:.3s; }
+    .lightbox.active { opacity:1; visibility:visible; }
+    .lightbox-content { position:relative; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; }
+    .lightbox-image { max-width:100%; max-height:85vh; object-fit:contain; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+    .lightbox-caption { color:white; font-size:1rem; font-weight:500; margin-top:1.5rem; text-align:center; background:rgba(255,255,255,0.1); padding:.75rem 1.5rem; border-radius:25px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+    .lightbox-close { position:absolute; top:2rem; right:2rem; background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
+    .lightbox-close:hover { background:rgba(255,255,255,0.3); transform:scale(1.1); }
+    .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:60px; height:60px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
+    .lightbox-nav:hover { background:rgba(255,255,255,0.3); transform:translateY(-50%) scale(1.1); }
+    .lightbox-prev { left:2rem; }
+    .lightbox-next { right:2rem; }
+
+    footer { background:#8A9A8E; color:white; padding:3rem 0; text-align:center; }
+    .footer-content { max-width:1200px; margin:0 auto; padding:0 2rem; }
+    .footer-content p { font-size:1rem; opacity:0.8; }
+
+    @keyframes fadeInUp { from {opacity
