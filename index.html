@@ -40,6 +40,25 @@
             padding: 0 2rem 3rem 2rem;
             border-bottom: 1px solid rgba(138, 154, 142, 0.1);
             margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sidebar-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8A9A8E, #6B7A6F);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-text {
+            flex: 1;
         }
 
         .sidebar-logo h1 {
@@ -142,8 +161,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('photos/hero-image.JPG') center/cover;
-            opacity: 0.3;
+            background: url('photos/hero-image.jpg') center/cover;
+            opacity: 0.15;
             z-index: 1;
         }
 
@@ -464,11 +483,6 @@
                 grid-template-columns: 1fr;
             }
             
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-            
             .section-title h2 {
                 font-size: 2rem;
             }
@@ -488,8 +502,15 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-logo">
-            <h1>Kurt Tristan</h1>
-            <p>Photographer & Explorer</p>
+            <div class="sidebar-logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+                </svg>
+            </div>
+            <div class="sidebar-logo-text">
+                <h1>Kurt Tristan</h1>
+                <p>Photographer & Explorer</p>
+            </div>
         </div>
         
         <nav class="sidebar-nav">
@@ -581,42 +602,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Features Section with Icons -->
-            <div class="features-section">
-                <div class="features-grid">
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
-                            </svg>
-                        </div>
-                        <h3>Adventure</h3>
-                        <p>Exploring peaks, valleys, and everything in between</p>
-                    </div>
-                    
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-                                <circle cx="12" cy="13" r="3"/>
-                            </svg>
-                        </div>
-                        <h3>Photography</h3>
-                        <p>Capturing moments that tell compelling stories</p>
-                    </div>
-                    
-                    <div class="feature-item">
-                        <div class="feature-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="m17 3-2.5 7.5L18 18l-5-5-5 5 3.5-7.5L9 3z"/>
-                            </svg>
-                        </div>
-                        <h3>Storytelling</h3>
-                        <p>Every image has a tale waiting to be discovered</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -700,7 +685,7 @@
         }, observerOptions);
 
         // Observe gallery items for scroll animations
-        document.querySelectorAll('.gallery-item, .feature-item').forEach(item => {
+        document.querySelectorAll('.gallery-item').forEach(item => {
             item.style.opacity = '0';
             item.style.transform = 'translateY(30px)';
             item.style.transition = 'all 0.6s ease';
