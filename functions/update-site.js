@@ -1,0 +1,258 @@
+const { createClient } = require('@supabase/supabase-js');
+const { Octokit } = require('@octokit/rest');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN,
+});
+
+exports.handler = async (event, context) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  try {
+    // Fetch current data from Supabase
+    const { data: galleryData, error: galleryError } = await supabase
+      .from('gallery')
+      .select('*')
+      .order('order_index', { ascending: true });
+
+    const { data: journalData, error: journalError } = await supabase
+      .from('journal')
+      .select('*')
+      .order('entry_date', { ascending: false });
+
+    if (galleryError || journalError) {
+      throw new Error('Failed to fetch data from database');
+    }
+
+    // Generate HTML
+    const galleryHTML = galleryData.map((item, index) => 
+      `        <div class="gallery-item" onclick="openLightbox(${index})"><img src="${item.image_url}" alt="Adventure ${index + 1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'"></div>`
+    ).join('\n');
+    
+    const galleryJS = galleryData.map(item => 
+      `      { src: '${item.image_url}', location: '${item.location.replace(/'/g, "\\'")}' }`
+    ).join(',\n');
+    
+    const journalHTML = journalData.map(entry => {
+      const formattedDate = new Date(entry.entry_date).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      return `
+        <article class="journal-entry">
+          <div class="entry-header">
+            <h3>${entry.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
+            <time>${formattedDate}</time>
+          </div>
+          <div class="entry-content">
+            <p>${entry.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+          </div>
+        </article>`;
+    }).join('');
+
+    // Complete HTML template
+    const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurt Tristan - Wander & Wonder</title>
+  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; color: #2c2c2c; overflow-x: hidden; margin-left: 280px; }
+    .sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); z-index: 1000; padding: 2rem 0; display: flex; flex-direction: column; border-right: 1px solid rgba(138,154,142,0.1); }
+    .sidebar-logo { padding: 0 2rem 3rem 2rem; border-bottom: 1px solid rgba(138,154,142,0.1); margin-bottom: 3rem; }
+    .sidebar-logo h1 { font-size: 1.5rem; font-weight: 700; color: #2c2c2c; }
+    .sidebar-logo p { font-size: 0.9rem; color: #8A9A8E; margin-top: .5rem; font-weight: 500; }
+    .sidebar-nav { flex: 1; padding: 0 2rem; }
+    .sidebar-nav ul { list-style: none; }
+    .sidebar-nav li { margin-bottom: 1rem; }
+    .sidebar-nav a { display: flex; align-items: center; padding: 1rem 1.5rem; text-decoration: none; color: #666; border-radius: 12px; transition: all .3s ease; font-weight: 500; }
+    .sidebar-nav a:hover { background: rgba(138,154,142,0.1); color: #8A9A8E; transform: translateX(5px); }
+    .sidebar-nav a.active { background: rgba(138,154,142,0.15); color: #8A9A8E; }
+    .nav-icon { width: 24px; height: 24px; border-radius: 50%; background: #8A9A8E; display: flex; align-items: center; justify-content: center; margin-right: 1rem; color: white; }
+    .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(138,154,142,0.1); margin-top: auto; }
+    .sidebar-footer p { font-size: .8rem; color: #999; text-align: center; }
+    header { display: none; }
+    .hero { height: 100vh; background: linear-gradient(135deg,#8A9A8E 0%,#6B7A6F 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: url('photos/hero-image.jpg') center/cover; opacity: 0; z-index:1; animation: heroFadeIn 2s ease 1s forwards; }
+    .hero-content { position: relative; z-index:2; max-width: 800px; padding: 0 2rem; }
+    .hero h1 { font-size: clamp(3rem,8vw,6rem); font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -2px; opacity:0; animation: fadeInUp 1s ease .5s forwards; }
+    .hero p { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; opacity:0; animation: fadeInUp 1s ease .7s forwards; }
+    .cta-button { display:inline-block; padding:1rem 2.5rem; background:rgba(255,255,255,0.2); border:2px solid white; border-radius:50px; font-weight:600; color:white; text-decoration:none; transition:.3s; opacity:0; animation: fadeInUp 1s ease .9s forwards; }
+    .cta-button:hover { background:white; color:#8A9A8E; transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.2); }
+    .gallery { padding:8rem 0; background:#F5F1E8; }
+    .gallery-container { max-width:1400px; margin:0 auto; padding:0 2rem; }
+    .section-title { text-align:center; margin-bottom:4rem; }
+    .section-title h2 { font-size:3rem; font-weight:700; color:#2c2c2c; margin-bottom:1rem; }
+    .section-title p { font-size:1.2rem; color:#666; max-width:600px; margin:0 auto; }
+    .gallery-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap:2rem; margin-bottom:4rem; }
+    .gallery-item { position:relative; border-radius:20px; overflow:hidden; aspect-ratio:4/3; background:#ddd; transition:.3s; cursor:pointer; }
+    .gallery-item:hover { transform:translateY(-10px); box-shadow:0 20px 40px rgba(0,0,0,.15); }
+    .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+    .gallery-item:hover img { transform:scale(1.05); }
+    .journal { padding:8rem 0; background:white; }
+    .journal-container { max-width:800px; margin:0 auto; padding:0 2rem; }
+    .journal-entries { display:flex; flex-direction:column; gap:3rem; }
+    .journal-entry { background:#F5F1E8; border-radius:20px; padding:3rem; transition:.3s; }
+    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.1); }
+    .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
+    .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
+    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
+    .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
+    .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
+    .lightbox { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:.3s; }
+    .lightbox.active { opacity:1; visibility:visible; }
+    .lightbox-content { position:relative; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; }
+    .lightbox-image { max-width:100%; max-height:85vh; object-fit:contain; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+    .lightbox-caption { color:white; font-size:1rem; font-weight:500; margin-top:1.5rem; text-align:center; background:rgba(255,255,255,0.1); padding:.75rem 1.5rem; border-radius:25px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+    .lightbox-close { position:absolute; top:2rem; right:2rem; background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
+    .lightbox-close:hover { background:rgba(255,255,255,0.3); transform:scale(1.1); }
+    .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:60px; height:60px; border-radius:50%; cursor:pointer; display:flex; align-items: center; justify-content:center; transition:.3s; }
+    .lightbox-nav:hover { background:rgba(255,255,255,0.3); transform:translateY(-50%) scale(1.1); }
+    .lightbox-prev { left:2rem; }
+    .lightbox-next { right:2rem; }
+    footer { background:#8A9A8E; color:white; padding:3rem 0; text-align:center; }
+    .footer-content { max-width:1200px; margin:0 auto; padding:0 2rem; }
+    .footer-content p { font-size:1rem; opacity:0.8; }
+    @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
+    @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.8;} }
+    @media (max-width:1024px) { body{margin-left:0;} .sidebar{transform:translateX(-100%);transition:.3s;} .sidebar.open{transform:translateX(0);} header{display:block; position:fixed; top:0; width:100%; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); z-index:1001; padding:1rem 0;} nav{max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0 2rem;} .logo{font-size:1.5rem; font-weight:700; color:#2c2c2c; text-decoration:none;} .mobile-menu-btn{background:none; border:none; font-size:1.5rem; color:#2c2c2c; cursor:pointer;} .hero{padding-top:80px; height:calc(100vh - 80px);} }
+    @media (max-width:768px) { .hero h1{font-size:3rem;} .hero p{font-size:1.2rem;} .gallery-grid{grid-template-columns:1fr;} .section-title h2{font-size:2rem;} .sidebar{width:100%;} }
+    html { scroll-behavior:smooth; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-logo"><h1>Kurt Tristan</h1><p>Explorer</p></div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="#home" class="nav-link active"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg></div>Home</a></li>
+        <li><a href="#gallery" class="nav-link"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>Gallery</a></li>
+        <li><a href="#journal" class="nav-link"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></div>Journal</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer"><p>&copy; 2025 Kurt Tristan</p></div>
+  </div>
+  <header><nav><a href="#" class="logo">Kurt Tristan</a><button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button></nav></header>
+  <section class="hero" id="home">
+    <div class="hero-content"><h1>Wander & Wonder</h1><p>When is Anything Ever Always?</p><a href="#gallery" class="cta-button">Explore Gallery</a></div>
+  </section>
+  <section class="gallery" id="gallery">
+    <div class="gallery-container">
+      <div class="section-title"><h2>Featured Collection</h2><p>A curated selection of moments captured during extraordinary adventures</p></div>
+      <div class="gallery-grid">
+${galleryHTML}
+      </div>
+    </div>
+  </section>
+  <section class="journal" id="journal">
+    <div class="journal-container">
+      <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and the art of seeing</p></div>
+      <div class="journal-entries">
+${journalHTML}
+      </div>
+    </div>
+  </section>
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <button class="lightbox-nav lightbox-prev" onclick="previousImage()">&#8249;</button>
+    <button class="lightbox-nav lightbox-next" onclick="nextImage()">&#8250;</button>
+    <div class="lightbox-content">
+      <img class="lightbox-image" id="lightbox-image" src="" alt="">
+      <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+  </div>
+  <footer><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
+  <script>
+    const galleryImages = [
+${galleryJS}
+    ];
+    let currentImageIndex = 0;
+    function openLightbox(index) {
+      currentImageIndex = index;
+      const lightbox = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-image');
+      const caption = document.getElementById('lightbox-caption');
+      img.src = galleryImages[index].src;
+      caption.textContent = galleryImages[index].location;
+      lightbox.classList.add('active');
+      document.body.style.overflow='hidden';
+    }
+    function closeLightbox(){document.getElementById('lightbox').classList.remove('active'); document.body.style.overflow='auto';}
+    function nextImage(){currentImageIndex=(currentImageIndex+1)%galleryImages.length; updateLightboxImage();}
+    function previousImage(){currentImageIndex=(currentImageIndex-1+galleryImages.length)%galleryImages.length; updateLightboxImage();}
+    function updateLightboxImage(){const img=document.getElementById('lightbox-image'); const caption=document.getElementById('lightbox-caption'); img.src=galleryImages[currentImageIndex].src; caption.textContent=galleryImages[currentImageIndex].location;}
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox(); else if(e.key==='ArrowRight')nextImage(); else if(e.key==='ArrowLeft')previousImage();});
+    document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLightbox();});
+    function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');}
+    document.addEventListener('click',e=>{const sidebar=document.querySelector('.sidebar'); const btn=document.querySelector('.mobile-menu-btn'); if(window.innerWidth<=1024 && !sidebar.contains(e.target)&&(!btn || !btn.contains(e.target))&&sidebar.classList.contains('open'))sidebar.classList.remove('open');});
+    document.querySelectorAll('.nav-link').forEach(anchor=>{anchor.addEventListener('click',function(e){e.preventDefault(); const target=document.querySelector(this.getAttribute('href')); if(target){target.scrollIntoView({behavior:'smooth'}); document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); this.classList.add('active'); if(window.innerWidth<=1024)document.querySelector('.sidebar').classList.remove('open');}});});
+    window.addEventListener('scroll',()=>{const sections=['home','gallery','journal']; const pos=window.scrollY+200; sections.forEach(id=>{const el=document.getElementById(id); if(el && pos>=el.offsetTop && pos<el.offsetTop+el.offsetHeight){document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); document.querySelector(\`.nav-link[href="#\${id}"]\`).classList.add('active');}});});
+    const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.style.opacity='1'; entry.target.style.transform='translateY(0)';}});},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+    document.querySelectorAll('.gallery-item, .journal-entry').forEach(item=>{item.style.opacity='0';item.style.transform='translateY(30px)';item.style.transition='all 0.6s ease';observer.observe(item);});
+  </script>
+</body>
+</html>`;
+
+    // Update GitHub repository
+    const { data: currentFile } = await octokit.rest.repos.getContent({
+      owner: process.env.GITHUB_OWNER,
+      repo: process.env.GITHUB_REPO.split('/')[1],
+      path: 'index.html',
+    });
+
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner: process.env.GITHUB_OWNER,
+      repo: process.env.GITHUB_REPO.split('/')[1],
+      path: 'index.html',
+      message: 'Auto-update website content',
+      content: Buffer.from(fullHTML).toString('base64'),
+      sha: currentFile.sha,
+    });
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ 
+        success: true, 
+        message: 'Website updated successfully' 
+      })
+    };
+
+  } catch (error) {
+    console.error('Update error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        success: false, 
+        error: error.message 
+      })
+    };
+  }
+};
