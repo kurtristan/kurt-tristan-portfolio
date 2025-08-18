@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Content Manager</title>
   <meta name="robots" content="noindex, nofollow"/>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -65,7 +66,7 @@
     .code-output { background: #2c2c2c; color: #f8f8f2; padding: 1.5rem; border-radius: 10px; font-family: 'Monaco','Menlo',monospace; font-size: 0.9rem; overflow-x: auto; margin-top: 1rem; max-height: 400px; overflow-y: auto; }
     .code-output textarea { width: 100%; height: 400px; background: #2c2c2c; color: #f8f8f2; border: none; font-family: monospace; padding: 1rem; border-radius: 10px; }
 
-    /* Success/Info */
+    /* Messages */
     .message { padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
     .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .message.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
@@ -216,7 +217,6 @@
         .replace(/'/g, "&#39;");
     }
     function escapeJsSingleQuoted(str) {
-      // Escape for use inside single-quoted JS strings in generated code
       return String(str)
         .replace(/\\/g, "\\\\")
         .replace(/'/g, "\\'")
@@ -232,7 +232,7 @@
       tabButtons.forEach(button => {
         button.addEventListener('click', function(e) {
           e.preventDefault();
-          const targetTab = (this.getAttribute('href') || '').substring(1); // "gallery" | "journal" | "export"
+          const targetTab = (this.getAttribute('href') || '').substring(1);
           if (!targetTab) return;
           const pane = document.getElementById(targetTab + '-tab');
           if (!pane) return;
@@ -248,13 +248,11 @@
 
     // ---------- Generate Code ----------
     function generateCode() {
-      // Get form values
       const newPhotoLocationRaw = document.getElementById('new-photo-location').value.trim();
       const entryTitleRaw = document.getElementById('entry-title').value.trim();
       const entryDate = document.getElementById('entry-date').value;
       const entryContentRaw = document.getElementById('entry-content').value.trim();
 
-      // Base gallery data
       let galleryData = [
         { src: 'photos/gallery-1.jpg', location: 'Monterey, CA' },
         { src: 'photos/gallery-2.jpg', location: 'Monterey, CA' },
@@ -264,7 +262,6 @@
         { src: 'photos/gallery-6.jpg', location: 'San Jose, CA' }
       ];
 
-      // Add new photo (fixed filename per your instructions)
       if (newPhotoLocationRaw) {
         galleryData.push({
           src: 'photos/gallery-7.jpg',
@@ -272,7 +269,6 @@
         });
       }
 
-      // Base journal data
       let journalData = [
         {
           title: 'Moment',
@@ -281,7 +277,6 @@
         }
       ];
 
-      // Add new journal entry if provided
       if (entryTitleRaw && entryDate && entryContentRaw) {
         const d = new Date(entryDate);
         const formattedDate = isNaN(d.getTime())
@@ -294,17 +289,14 @@
         });
       }
 
-      // Build gallery HTML for thumbnails (safe into HTML)
       const galleryHTML = galleryData.map((item, index) =>
         `        <div class="gallery-item" onclick="openLightbox(${index})"><img src="${escapeHtml(item.src)}" alt="Adventure ${index + 1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'"></div>`
       ).join('\n');
 
-      // Build gallery JS array (safe into single-quoted JS strings)
       const galleryJS = galleryData.map(item =>
         `      { src: '${escapeJsSingleQuoted(item.src)}', location: '${escapeJsSingleQuoted(item.location)}' }`
       ).join(',\n');
 
-      // Build journal HTML (safe into HTML)
       const journalHTML = journalData.map(entry => `
         <article class="journal-entry">
           <div class="entry-header">
@@ -316,7 +308,6 @@
           </div>
         </article>`).join('');
 
-      // Full site HTML (kept as your design)
       const fullHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -433,10 +424,13 @@ ${journalHTML}
   </div>
   <footer><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
   <script>
+    // ---------- Data for generated site ----------
     const galleryImages = [
 ${galleryJS}
     ];
+
     let currentImageIndex = 0;
+
     function openLightbox(index) {
       currentImageIndex = index;
       const lightbox = document.getElementById('lightbox');
@@ -451,19 +445,94 @@ ${galleryJS}
     function nextImage(){currentImageIndex=(currentImageIndex+1)%galleryImages.length; updateLightboxImage();}
     function previousImage(){currentImageIndex=(currentImageIndex-1+galleryImages.length)%galleryImages.length; updateLightboxImage();}
     function updateLightboxImage(){const img=document.getElementById('lightbox-image'); const caption=document.getElementById('lightbox-caption'); img.src=galleryImages[currentImageIndex].src; caption.textContent=galleryImages[currentImageIndex].location;}
+
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox(); else if(e.key==='ArrowRight')nextImage(); else if(e.key==='ArrowLeft')previousImage();});
     document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLightbox();});
+
     function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');}
     document.addEventListener('click',e=>{const sidebar=document.querySelector('.sidebar'); const btn=document.querySelector('.mobile-menu-btn'); if(window.innerWidth<=1024 && !sidebar.contains(e.target)&&(!btn || !btn.contains(e.target))&&sidebar.classList.contains('open'))sidebar.classList.remove('open');});
+
     document.querySelectorAll('.nav-link').forEach(anchor=>{anchor.addEventListener('click',function(e){e.preventDefault(); const target=document.querySelector(this.getAttribute('href')); if(target){target.scrollIntoView({behavior:'smooth'}); document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); this.classList.add('active'); if(window.innerWidth<=1024)document.querySelector('.sidebar').classList.remove('open');}});});
+
     window.addEventListener('scroll',()=>{const sections=['home','gallery','journal']; const pos=window.scrollY+200; sections.forEach(id=>{const el=document.getElementById(id); if(el && pos>=el.offsetTop && pos<el.offsetTop+el.offsetHeight){document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); document.querySelector(\`.nav-link[href="#\${id}"]\`).classList.add('active');}});});
+
     const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.style.opacity='1'; entry.target.style.transform='translateY(0)';}});},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
     document.querySelectorAll('.gallery-item, .journal-entry').forEach(item=>{item.style.opacity='0';item.style.transform='translateY(30px)';item.style.transition='all 0.6s ease';observer.observe(item);});
+
+    // ---------- Generate Code ----------
+    function generateCode() {
+      const newPhotoLocationRaw = document.getElementById('new-photo-location').value.trim();
+      const entryTitleRaw = document.getElementById('entry-title').value.trim();
+      const entryDate = document.getElementById('entry-date').value;
+      const entryContentRaw = document.getElementById('entry-content').value.trim();
+
+      let galleryData = [
+        { src: 'photos/gallery-1.jpg', location: 'Monterey, CA' },
+        { src: 'photos/gallery-2.jpg', location: 'Monterey, CA' },
+        { src: 'photos/gallery-3.jpg', location: 'San Francisco, CA' },
+        { src: 'photos/gallery-4.jpg', location: 'Los Angeles, CA' },
+        { src: 'photos/gallery-5.jpg', location: 'Los Angeles, CA' },
+        { src: 'photos/gallery-6.jpg', location: 'San Jose, CA' }
+      ];
+      if (newPhotoLocationRaw) {
+        galleryData.push({ src: 'photos/gallery-7.jpg', location: newPhotoLocationRaw });
+      }
+
+      let journalData = [
+        {
+          title: 'Moment',
+          date: 'May 25, 2025',
+          content: 'The problem isn\\'t just capturing the image, it\\'s capturing the emotions I held while also being in that moment. Moment. I now understand what people mean when they want to write a song, a poem, paint, or take the perfect photo. Maybe that\\'s why I am ever rarely satisfied with anything I create— it\\'s because I struggle to capture the Moment completely.'
+        }
+      ];
+      if (entryTitleRaw && entryDate && entryContentRaw) {
+        const d = new Date(entryDate);
+        const formattedDate = isNaN(d.getTime())
+          ? entryDate
+          : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        journalData.push({ title: entryTitleRaw, date: formattedDate, content: entryContentRaw });
+      }
+
+      const galleryHTML = galleryData.map((item, index) =>
+        `        <div class="gallery-item" onclick="openLightbox(${index})"><img src="${escapeHtml(item.src)}" alt="Adventure ${index + 1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'"></div>`
+      ).join('\n');
+
+      const galleryJS = galleryData.map(item =>
+        `      { src: '${escapeJsSingleQuoted(item.src)}', location: '${escapeJsSingleQuoted(item.location)}' }`
+      ).join(',\n');
+
+      const journalHTML = journalData.map(entry => `
+        <article class="journal-entry">
+          <div class="entry-header">
+            <h3>${escapeHtml(entry.title)}</h3>
+            <time>${escapeHtml(entry.date)}</time>
+          </div>
+          <div class="entry-content">
+            <p>${escapeHtml(entry.content)}</p>
+          </div>
+        </article>`).join('');
+
+      const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kurt Tristan - Wander & Wonder</title>
+  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
+  <style>/* … your same site CSS … */</style>
+</head>
+<body>
+  <!-- … your same site HTML … -->
+  <script>
+    const galleryImages = [
+${galleryJS}
+    ];
+    // … your same site JS …
   </script>
 </body>
 </html>`;
 
-      // Show code
       document.getElementById('generated-code').value = fullHTML;
       document.getElementById('code-container').style.display = 'block';
     }
