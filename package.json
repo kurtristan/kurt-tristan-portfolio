@@ -1,0 +1,19 @@
+{
+  "name": "kurt-tristan-admin",
+  "version": "1.0.0",
+  "description": "Backend for Kurt Tristan photography portfolio",
+  "main": "index.js",
+  "scripts": {
+    "build": "netlify-lambda build functions",
+    "dev": "netlify-lambda serve functions"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.4",
+    "@octokit/rest": "^20.0.2",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.32.6"
+  },
+  "devDependencies": {
+    "netlify-lambda": "^2.0.16"
+  }
+}
