@@ -52,6 +52,17 @@
     .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
     .gallery-item:hover img { transform:scale(1.05); }
 
+    /* Journal */
+    .journal { padding:8rem 0; background:white; }
+    .journal-container { max-width:800px; margin:0 auto; padding:0 2rem; }
+    .journal-entries { display:flex; flex-direction:column; gap:3rem; }
+    .journal-entry { background:#F5F1E8; border-radius:20px; padding:3rem; transition:.3s; }
+    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.1); }
+    .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
+    .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
+    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
+    .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
+
     /* Placeholder */
     .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
 
@@ -100,7 +111,7 @@
 
   <!-- Hero -->
   <section class="hero" id="home">
-    <div class="hero-content"><h1>Wander & Wonder</h1><p>When is anything ever always</p><a href="#gallery" class="cta-button">Explore Gallery</a></div>
+    <div class="hero-content"><h1>Wander & Wonder</h1><p>When is Anything Ever Always?</p><a href="#gallery" class="cta-button">Explore Gallery</a></div>
   </section>
 
   <!-- Gallery -->
@@ -117,6 +128,24 @@
     </div>
   </section>
 
+  <!-- Journal -->
+  <section class="journal" id="journal">
+    <div class="journal-container">
+      <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and the art of seeing</p></div>
+      <div class="journal-entries">
+        <article class="journal-entry">
+          <div class="entry-header">
+            <h3>Moment</h3>
+            <time>January 2025</time>
+          </div>
+          <div class="entry-content">
+            <p>The problem isn't just capturing the image, it's capturing the emotions I held while also being in that moment. Moment. I now understand what people mean when they want to write a song, a poem, paint, or take the perfect photo. Maybe that's why I am ever rarely satisfied with anything I create— it's because I struggle to capture the Moment completely.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <!-- Lightbox -->
   <div class="lightbox" id="lightbox">
     <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
@@ -129,7 +158,7 @@
   </div>
 
   <!-- Footer -->
-  <footer id="journal"><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
+  <footer><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
 
   <script>
     // Gallery images data
@@ -168,7 +197,7 @@
     window.addEventListener('scroll',()=>{const sections=['home','gallery','journal']; const pos=window.scrollY+200; sections.forEach(id=>{const el=document.getElementById(id); if(el && pos>=el.offsetTop && pos<el.offsetTop+el.offsetHeight){document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active')); document.querySelector(`.nav-link[href="#${id}"]`).classList.add('active');}});});
 
     const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.style.opacity='1'; entry.target.style.transform='translateY(0)';}});},{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
-    document.querySelectorAll('.gallery-item').forEach(item=>{item.style.opacity='0';item.style.transform='translateY(30px)';item.style.transition='all 0.6s ease';observer.observe(item);});
+    document.querySelectorAll('.gallery-item, .journal-entry').forEach(item=>{item.style.opacity='0';item.style.transform='translateY(30px)';item.style.transition='all 0.6s ease';observer.observe(item);});
   </script>
 </body>
 </html>
