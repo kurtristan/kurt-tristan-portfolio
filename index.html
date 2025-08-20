@@ -6,69 +6,102 @@
   <title>Kurt Tristan - Wander & Wonder</title>
   <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
+
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6;color:#2c2c2c;overflow-x:hidden;margin-left:280px}
-    .sidebar{position:fixed;top:0;left:0;width:280px;height:100vh;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);z-index:1000;padding:2rem 0;display:flex;flex-direction:column;border-right:1px solid rgba(138,154,142,0.1)}
-    .sidebar-logo{padding:0 2rem 3rem 2rem;border-bottom:1px solid rgba(138,154,142,0.1);margin-bottom:3rem}
-    .sidebar-logo h1{font-size:1.5rem;font-weight:700;color:#2c2c2c}
-    .sidebar-logo p{font-size:.9rem;color:#8A9A8E;margin-top:.5rem;font-weight:500}
-    .sidebar-nav{flex:1;padding:0 2rem}
-    .sidebar-nav ul{list-style:none}
-    .sidebar-nav li{margin-bottom:1rem}
-    .sidebar-nav a{display:flex;align-items:center;padding:1rem 1.5rem;text-decoration:none;color:#666;border-radius:12px;transition:all .3s ease;font-weight:500}
-    .sidebar-nav a:hover{background:rgba(138,154,142,0.1);color:#8A9A8E;transform:translateX(5px)}
-    .sidebar-nav a.active{background:rgba(138,154,142,0.15);color:#8A9A8E}
-    .nav-icon{width:24px;height:24px;border-radius:50%;background:#8A9A8E;display:flex;align-items:center;justify-content:center;margin-right:1rem;color:white}
-    .sidebar-footer{padding:2rem;border-top:1px solid rgba(138,154,142,0.1);margin-top:auto}
-    .sidebar-footer p{font-size:.8rem;color:#999;text-align:center}
-    header{display:none}
-    .hero{height:100vh;background:linear-gradient(135deg,#8A9A8E 0%,#6B7A6F 100%);display:flex;align-items:center;justify-content:center;text-align:center;color:white;position:relative;overflow:hidden}
-    .hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('photos/hero-image.jpg') center/cover;opacity:0;z-index:1;animation:heroFadeIn 2s ease 1s forwards}
-    .hero-content{position:relative;z-index:2;max-width:800px;padding:0 2rem}
-    .hero h1{font-size:clamp(3rem,8vw,6rem);font-weight:800;margin-bottom:1.5rem;letter-spacing:-2px;opacity:0;animation:fadeInUp 1s ease .5s forwards}
-    .hero p{font-size:1.5rem;font-weight:300;margin-bottom:2rem;opacity:0;animation:fadeInUp 1s ease .7s forwards}
-    .cta-button{display:inline-block;padding:1rem 2.5rem;background:rgba(255,255,255,0.2);border:2px solid white;border-radius:50px;font-weight:600;color:white;text-decoration:none;transition:.3s;opacity:0;animation:fadeInUp 1s ease .9s forwards}
-    .cta-button:hover{background:white;color:#8A9A8E;transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
-    .gallery{padding:8rem 0;background:#F5F1E8}
-    .gallery-container{max-width:1400px;margin:0 auto;padding:0 2rem}
-    .section-title{text-align:center;margin-bottom:4rem}
-    .section-title h2{font-size:3rem;font-weight:700;color:#2c2c2c;margin-bottom:1rem}
-    .section-title p{font-size:1.2rem;color:#666;max-width:600px;margin:0 auto}
-    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:2rem;margin-bottom:4rem}
-    .gallery-item{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:4/3;background:#ddd;transition:.3s;cursor:pointer}
-    .gallery-item:hover{transform:translateY(-10px);box-shadow:0 20px 40px rgba(0,0,0,.15)}
-    .gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
-    .gallery-item:hover img{transform:scale(1.05)}
-    .journal{padding:8rem 0;background:white}
-    .journal-container{max-width:800px;margin:0 auto;padding:0 2rem}
-    .journal-entries{display:flex;flex-direction:column;gap:3rem}
-    .journal-entry{background:#F5F1E8;border-radius:20px;padding:3rem;transition:.3s}
-    .journal-entry:hover{transform:translateY(-5px);box-shadow:0 15px 30px rgba(138,154,142,0.1)}
-    .entry-header{margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid rgba(138,154,142,0.2)}
-    .entry-header h3{font-size:2rem;font-weight:700;color:#2c2c2c;margin-bottom:.5rem}
-    .entry-header time{font-size:1rem;color:#8A9A8E;font-weight:500}
-    .entry-content p{font-size:1.1rem;line-height:1.8;color:#2c2c2c;font-style:italic}
-    .placeholder{background:linear-gradient(45deg,#f0f0f0,#e0e0e0);display:flex;align-items:center;justify-content:center;color:#666;font-size:1.1rem;font-weight:500}
-    .lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;visibility:hidden;transition:.3s}
-    .lightbox.active{opacity:1;visibility:visible}
-    .lightbox-content{position:relative;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;align-items:center}
-    .lightbox-image{max-width:100%;max-height:85vh;object-fit:contain;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-    .lightbox-caption{color:white;font-size:1rem;font-weight:500;margin-top:1.5rem;text-align:center;background:rgba(255,255,255,0.1);padding:.75rem 1.5rem;border-radius:25px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1)}
-    .lightbox-close{position:absolute;top:2rem;right:2rem;background:rgba(255,255,255,0.2);border:none;color:white;font-size:2rem;width:50px;height:50px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s}
-    .lightbox-close:hover{background:rgba(255,255,255,0.3);transform:scale(1.1)}
-    .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.2);border:none;color:white;font-size:2rem;width:60px;height:60px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s}
-    .lightbox-nav:hover{background:rgba(255,255,255,0.3);transform:translateY(-50%) scale(1.1)}
-    .lightbox-prev{left:2rem}
-    .lightbox-next{right:2rem}
-    footer{background:#8A9A8E;color:white;padding:3rem 0;text-align:center}
-    .footer-content{max-width:1200px;margin:0 auto;padding:0 2rem}
-    .footer-content p{font-size:1rem;opacity:.8}
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes heroFadeIn{from{opacity:0}to{opacity:.8}}
-    @media(max-width:1024px){body{margin-left:0}.sidebar{transform:translateX(-100%);transition:.3s}.sidebar.open{transform:translateX(0)}header{display:block;position:fixed;top:0;width:100%;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);z-index:1001;padding:1rem 0}nav{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 2rem}.logo{font-size:1.5rem;font-weight:700;color:#2c2c2c;text-decoration:none}.mobile-menu-btn{background:none;border:none;font-size:1.5rem;color:#2c2c2c;cursor:pointer}.hero{padding-top:80px;height:calc(100vh - 80px)}}
-    @media(max-width:768px){.hero h1{font-size:3rem}.hero p{font-size:1.2rem}.gallery-grid{grid-template-columns:1fr}.section-title h2{font-size:2rem}.sidebar{width:100%}}
-    html{scroll-behavior:smooth}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; color: #2c2c2c; overflow-x: hidden; margin-left: 280px; }
+
+    /* Sidebar */
+    .sidebar { position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); z-index: 1000; padding: 2rem 0; display: flex; flex-direction: column; border-right: 1px solid rgba(138,154,142,0.1); }
+    .sidebar-logo { padding: 0 2rem 3rem 2rem; border-bottom: 1px solid rgba(138,154,142,0.1); margin-bottom: 3rem; }
+    .sidebar-logo h1 { font-size: 1.5rem; font-weight: 700; color: #2c2c2c; }
+    .sidebar-logo p { font-size: 0.9rem; color: #8A9A8E; margin-top: .5rem; font-weight: 500; }
+    .sidebar-nav { flex: 1; padding: 0 2rem; }
+    .sidebar-nav ul { list-style: none; }
+    .sidebar-nav li { margin-bottom: 1rem; }
+    .sidebar-nav a { display: flex; align-items: center; padding: 1rem 1.5rem; text-decoration: none; color: #666; border-radius: 12px; transition: all .3s ease; font-weight: 500; }
+    .sidebar-nav a:hover { background: rgba(138,154,142,0.1); color: #8A9A8E; transform: translateX(5px); }
+    .sidebar-nav a.active { background: rgba(138,154,142,0.15); color: #8A9A8E; }
+    .nav-icon { width: 24px; height: 24px; border-radius: 50%; background: #8A9A8E; display: flex; align-items: center; justify-content: center; margin-right: 1rem; color: white; }
+    .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(138,154,142,0.1); margin-top: auto; }
+    .sidebar-footer p { font-size: .8rem; color: #999; text-align: center; }
+
+    /* Header (mobile) */
+    header { display: none; }
+
+    /* Hero */
+    .hero { height: 100vh; background: linear-gradient(135deg,#8A9A8E 0%,#6B7A6F 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background: url('photos/hero-image.jpg') center/cover; opacity: 0; z-index:1; animation: heroFadeIn 2s ease 1s forwards; }
+    .hero-content { position: relative; z-index:2; max-width: 800px; padding: 0 2rem; }
+    .hero h1 { font-size: clamp(3rem,8vw,6rem); font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -2px; opacity:0; animation: fadeInUp 1s ease .5s forwards; }
+    .hero p { font-size: 1.5rem; font-weight: 300; margin-bottom: 2rem; opacity:0; animation: fadeInUp 1s ease .7s forwards; }
+    .cta-button { display:inline-block; padding:1rem 2.5rem; background:rgba(255,255,255,0.2); border:2px solid white; border-radius:50px; font-weight:600; color:white; text-decoration:none; transition:.3s; opacity:0; animation: fadeInUp 1s ease .9s forwards; }
+    .cta-button:hover { background:white; color:#8A9A8E; transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.2); }
+
+    /* Gallery */
+    .gallery { padding:8rem 0; background:#F5F1E8; }
+    .gallery-container { max-width:1400px; margin:0 auto; padding:0 2rem; }
+    .section-title { text-align:center; margin-bottom:4rem; }
+    .section-title h2 { font-size:3rem; font-weight:700; color:#2c2c2c; margin-bottom:1rem; }
+    .section-title p { font-size:1.2rem; color:#666; max-width:600px; margin:0 auto; }
+    .gallery-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap:2rem; margin-bottom:4rem; }
+    .gallery-item { position:relative; border-radius:20px; overflow:hidden; aspect-ratio:4/3; background:#ddd; transition:.3s; cursor:pointer; }
+    .gallery-item:hover { transform:translateY(-10px); box-shadow:0 20px 40px rgba(0,0,0,.15); }
+    .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+    .gallery-item:hover img { transform:scale(1.05); }
+
+    /* Journal */
+    .journal { padding:8rem 0; background:white; }
+    .journal-container { max-width:800px; margin:0 auto; padding:0 2rem; }
+    .journal-entries { display:flex; flex-direction:column; gap:3rem; }
+    .journal-entry { background:#F5F1E8; border-radius:20px; padding:3rem; transition:.3s; }
+    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.1); }
+    .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
+    .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
+    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
+    .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
+
+    /* Placeholder */
+    .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
+
+    /* Lightbox */
+    .lightbox { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:.3s; }
+    .lightbox.active { opacity:1; visibility:visible; }
+    .lightbox-content { position:relative; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; }
+    .lightbox-image { max-width:100%; max-height:85vh; object-fit:contain; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+    .lightbox-caption { color:white; font-size:1rem; font-weight:500; margin-top:1.5rem; text-align:center; background:rgba(255,255,255,0.1); padding:.75rem 1.5rem; border-radius:25px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+    .lightbox-close { position:absolute; top:2rem; right:2rem; background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
+    .lightbox-close:hover { background:rgba(255,255,255,0.3); transform:scale(1.1); }
+    .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:60px; height:60px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
+    .lightbox-nav:hover { background:rgba(255,255,255,0.3); transform:translateY(-50%) scale(1.1); }
+    .lightbox-prev { left:2rem; }
+    .lightbox-next { right:2rem; }
+
+    footer { background:#8A9A8E; color:white; padding:3rem 0; text-align:center; }
+    .footer-content { max-width:1200px; margin:0 auto; padding:0 2rem; }
+    .footer-content p { font-size:1rem; opacity:0.8; }
+
+    @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
+    @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.8;} }
+
+    @media (max-width:1024px) {
+      body{margin-left:0;}
+      .sidebar{transform:translateX(-100%);transition:.3s;}
+      .sidebar.open{transform:translateX(0);}
+      header{display:block; position:fixed; top:0; width:100%; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); z-index:1001; padding:1rem 0;}
+      nav{max-width:1400px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0 2rem;}
+      .logo{font-size:1.5rem; font-weight:700; color:#2c2c2c; text-decoration:none;}
+      .mobile-menu-btn{background:none; border:none; font-size:1.5rem; color:#2c2c2c; cursor:pointer;}
+      .hero{padding-top:80px; height:calc(100vh - 80px);}
+    }
+    @media (max-width:768px) {
+      .hero h1{font-size:3rem;}
+      .hero p{font-size:1.2rem;}
+      .gallery-grid{grid-template-columns:1fr;}
+      .section-title h2{font-size:2rem;}
+      .sidebar{width:100%;}
+    }
+    html { scroll-behavior:smooth; }
   </style>
 </head>
 <body>
@@ -132,16 +165,31 @@
     </div>
   </div>
 
-  <footer><div class="footer-content"><p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p></div></footer>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p>
+    </div>
+  </footer>
 
   <script>
+    // ===== Helpers =====
     function escapeHtml(str){return str?String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])):"";}
-    function fmtDate(dateStr){if(!dateStr)return'';try{const d=String(dateStr);const dt=new Date(d.length>10?d:d+'T00:00:00');return dt.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}catch{return dateStr}}
+    function fmtDate(dateStr){
+      if(!dateStr) return '';
+      try{
+        const d = String(dateStr);
+        const dt = new Date(d.length>10 ? d : d + 'T00:00:00');
+        return dt.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+      }catch{return dateStr;}
+    }
 
-    let galleryImages=[],currentImageIndex=0;
+    // ===== Lightbox (Location • Title • Caption • Camera • Film) =====
+    let galleryImages = []; // [{src,title,caption,camera,film,location}]
+    let currentImageIndex = 0;
 
     function buildLightboxCaption(info){
-      const bits=[];
+      const bits = [];
       if(info.location) bits.push(escapeHtml(info.location));
       if(info.title) bits.push('<strong>'+escapeHtml(info.title)+'</strong>');
       if(info.caption) bits.push(escapeHtml(info.caption));
@@ -149,14 +197,172 @@
       if(info.film) bits.push(escapeHtml(info.film));
       return bits.join(' &nbsp;•&nbsp; ');
     }
-    function openLightbox(i){currentImageIndex=i;const info=galleryImages[i];document.getElementById('lightbox-image').src=info.src;document.getElementById('lightbox-caption').innerHTML=buildLightboxCaption(info);document.getElementById('lightbox').classList.add('active');document.body.style.overflow='hidden'}
-    function closeLightbox(){document.getElementById('lightbox').classList.remove('active');document.body.style.overflow='auto'}
-    function nextImage(){currentImageIndex=(currentImageIndex+1)%galleryImages.length;updateLightboxImage()}
-    function previousImage(){currentImageIndex=(currentImageIndex-1+galleryImages.length)%galleryImages.length;updateLightboxImage()}
-    function updateLightboxImage(){const info=galleryImages[currentImageIndex];document.getElementById('lightbox-image').src=info.src;document.getElementById('lightbox-caption').innerHTML=buildLightboxCaption(info)}
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();else if(e.key==='ArrowRight')nextImage();else if(e.key==='ArrowLeft')previousImage()})
-    document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLightbox()})
 
-    function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open')}
-    document.addEventListener('click',e=>{const sidebar=document.querySelector('.sidebar');const btn=document.querySelector('.mobile-menu-btn');if(window.innerWidth<=1024&&!sidebar.contains(e.target)&&(!btn||!btn.contains(e.target))&&sidebar.classList.contains('open'))sidebar.classList.remove('open')})
-    document.querySelectorAll('.nav-link').forEach(a=>
+    function openLightbox(index){
+      currentImageIndex = index;
+      const info = galleryImages[index];
+      document.getElementById('lightbox-image').src = info.src;
+      document.getElementById('lightbox-caption').innerHTML = buildLightboxCaption(info);
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow='hidden';
+    }
+    function closeLightbox(){ document.getElementById('lightbox').classList.remove('active'); document.body.style.overflow='auto'; }
+    function nextImage(){ currentImageIndex=(currentImageIndex+1)%galleryImages.length; updateLightboxImage(); }
+    function previousImage(){ currentImageIndex=(currentImageIndex-1+galleryImages.length)%galleryImages.length; updateLightboxImage(); }
+    function updateLightboxImage(){
+      const info = galleryImages[currentImageIndex];
+      document.getElementById('lightbox-image').src = info.src;
+      document.getElementById('lightbox-caption').innerHTML = buildLightboxCaption(info);
+    }
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLightbox(); else if(e.key==='ArrowRight')nextImage(); else if(e.key==='ArrowLeft')previousImage(); });
+    document.getElementById('lightbox').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeLightbox(); });
+
+    // ===== Sidebar / Nav =====
+    function toggleSidebar(){ document.querySelector('.sidebar').classList.toggle('open'); }
+    document.addEventListener('click',e=>{
+      const sidebar=document.querySelector('.sidebar'); const btn=document.querySelector('.mobile-menu-btn');
+      if(window.innerWidth<=1024 && !sidebar.contains(e.target) && (!btn || !btn.contains(e.target)) && sidebar.classList.contains('open')){
+        sidebar.classList.remove('open');
+      }
+    });
+    document.querySelectorAll('.nav-link').forEach(a=>{
+      a.addEventListener('click',function(e){
+        e.preventDefault();
+        const target=document.querySelector(this.getAttribute('href'));
+        if(target){
+          target.scrollIntoView({behavior:'smooth'});
+          document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+          this.classList.add('active');
+          if(window.innerWidth<=1024) document.querySelector('.sidebar').classList.remove('open');
+        }
+      });
+    });
+    window.addEventListener('scroll',()=>{
+      const sections=['home','gallery','journal']; const pos=window.scrollY+200;
+      sections.forEach(id=>{
+        const el=document.getElementById(id);
+        if(el && pos>=el.offsetTop && pos<el.offsetTop+el.offsetHeight){
+          document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+          const active=document.querySelector(`.nav-link[href="#${id}"]`);
+          if(active) active.classList.add('active');
+        }
+      });
+    });
+
+    // ===== Intersection Observer (fade-in) =====
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.style.opacity='1';
+          entry.target.style.transform='translateY(0)';
+        }
+      });
+    },{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
+
+    // ===== Data Fetching =====
+    async function fetchGallery(){
+      const grid = document.getElementById('gallery-grid');
+      try{
+        const res = await fetch('/.netlify/functions/gallery', { cache:'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const items = await res.json();
+        if(!Array.isArray(items) || items.length===0) throw new Error('No items');
+
+        // No filename fallback.
+        galleryImages = items.map(x=>{
+          const src = x.image_url || x.src || x.url || '';
+          return {
+            src,
+            title: x.title || '',
+            caption: x.caption || '',
+            camera: x.camera || '',
+            film: x.film || '',
+            location: x.location || ''
+          };
+        }).filter(g=>g.src);
+
+        grid.innerHTML = galleryImages
+          .map((g,i)=>`
+            <div class="gallery-item" onclick="openLightbox(${i})" style="opacity:0; transform:translateY(30px); transition:all .6s ease">
+              <img
+                src="${g.src}"
+                alt="${escapeHtml(g.title || 'Photo')}"
+                onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'"
+              >
+            </div>
+          `)
+          .join('');
+      }catch(err){
+        console.warn('Gallery fetch failed, using fallback:', err);
+        const fallback = [
+          { src: 'photos/gallery-1.jpg', location: 'Monterey, CA' },
+          { src: 'photos/gallery-2.jpg', location: 'Monterey, CA' },
+          { src: 'photos/gallery-3.jpg', location: 'San Francisco, CA' },
+          { src: 'photos/gallery-4.jpg', location: 'Los Angeles, CA' },
+          { src: 'photos/gallery-5.jpg', location: 'Los Angeles, CA' },
+          { src: 'photos/gallery-6.jpg', location: 'San Jose, CA' }
+        ];
+        galleryImages = fallback.map(f=>({ ...f, title:'', caption:'', camera:'', film:'' }));
+        grid.innerHTML = fallback
+          .map((g,i)=>`
+            <div class="gallery-item" onclick="openLightbox(${i})" style="opacity:0; transform:translateY(30px); transition:all .6s ease">
+              <img src="${g.src}" alt="Adventure ${i+1}" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder'); this.parentElement.innerHTML='<div>Image Coming Soon</div>'">
+            </div>
+          `)
+          .join('');
+      }
+
+      // Animate in
+      document.querySelectorAll('.gallery-item').forEach(item=> observer.observe(item));
+    }
+
+    async function fetchJournal(){
+      const wrap = document.getElementById('journal-entries');
+      try{
+        const res = await fetch('/.netlify/functions/journal', { cache:'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const entries = await res.json();
+        if(!Array.isArray(entries) || entries.length===0) throw new Error('No entries');
+
+        wrap.innerHTML = entries.map(entry=>{
+          const date = entry.entry_date || entry.date || entry.created_at || '';
+          const title = entry.title || 'Untitled';
+          const content = (entry.content || entry.body || '').replace(/\n/g,'<br>');
+          return `
+            <article class="journal-entry" style="opacity:0; transform:translateY(30px); transition:all .6s ease">
+              <div class="entry-header">
+                <h3>${escapeHtml(title)}</h3>
+                <time>${escapeHtml(fmtDate(String(date)))}</time>
+              </div>
+              <div class="entry-content">
+                <p>${content}</p>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }catch(err){
+        console.warn('Journal fetch failed, using fallback:', err);
+        wrap.innerHTML = `
+          <article class="journal-entry" style="opacity:0; transform:translateY(30px); transition:all .6s ease">
+            <div class="entry-header">
+              <h3>Moment</h3>
+              <time>May 25, 2025</time>
+            </div>
+            <div class="entry-content">
+              <p>The problem isn't just capturing the image, it's capturing the emotions I held while also being in that moment.</p>
+            </div>
+          </article>
+        `;
+      }
+
+      // Animate in
+      document.querySelectorAll('.journal-entry').forEach(item=> observer.observe(item));
+    }
+
+    // ===== Kickoff =====
+    function toggleSidebar(){ document.querySelector('.sidebar').classList.toggle('open'); }
+    fetchGallery();
+    fetchJournal();
+  </script>
+</body>
+</html>
