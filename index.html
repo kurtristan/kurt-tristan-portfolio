@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kurt Tristan - Wander & Wonder</title>
+  <title>Kurt Tristan - Wander in Wonder</title>
   <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
 
@@ -23,6 +23,8 @@
     .sidebar-nav a:hover { background: rgba(138,154,142,0.1); color: #8A9A8E; transform: translateX(5px); }
     .sidebar-nav a.active { background: rgba(138,154,142,0.15); color: #8A9A8E; }
     .nav-icon { width: 24px; height: 24px; border-radius: 50%; background: #8A9A8E; display: flex; align-items: center; justify-content: center; margin-right: 1rem; color: white; }
+    /* Fix for mobile: ensure the SVG is visible inside the green circle */
+    .nav-icon svg { width: 14px; height: 14px; display: block; stroke-width: 2.2; }
     .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(138,154,142,0.1); margin-top: auto; }
     .sidebar-footer p { font-size: .8rem; color: #999; text-align: center; }
 
@@ -60,12 +62,14 @@
       margin-top: 1rem;
       display: grid;
       place-items: center;
+      width: 100%;
     }
     .deck {
       position: relative;
-      width: min(820px, 92vw);
+      width: min(820px, calc(100vw - 2rem)); /* center-friendly width */
       height: 520px;
       perspective: 1200px;
+      margin-inline: auto; /* ensure centered on mobile */
     }
 
     .card {
@@ -127,6 +131,8 @@
       gap: 8px;
       align-items: center;
       margin: 0 8px;
+      max-width: 70vw;
+      overflow: hidden;
     }
     .deck-dot {
       width: 8px; height: 8px;
@@ -162,6 +168,7 @@
     @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
     @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.8;} }
 
+    /* Responsive */
     @media (max-width:1024px) {
       body{margin-left:0;}
       .sidebar{transform:translateX(-100%);transition:.3s;}
@@ -171,6 +178,10 @@
       .logo{font-size:1.5rem; font-weight:700; color:#2c2c2c; text-decoration:none;}
       .mobile-menu-btn{background:none; border:none; font-size:1.5rem; color:#2c2c2c; cursor:pointer;}
       .hero{padding-top:80px; height:calc(100vh - 80px);}
+      /* center helpers */
+      .journal-container { padding: 0 1.5rem; }
+      .gallery-container { padding: 0 1.5rem; }
+      .deck { width: min(820px, calc(100vw - 3rem)); }
     }
     @media (max-width:768px) {
       .hero h1{font-size:3rem;}
@@ -178,7 +189,7 @@
       .gallery-grid{grid-template-columns:1fr;}
       .section-title h2{font-size:2rem;}
       .sidebar{width:100%;}
-      .deck { height: 520px; }
+      .deck { height: 520px; width: min(820px, calc(100vw - 1.5rem)); }
       .deck-wrap { height: 560px; }
     }
     html { scroll-behavior:smooth; }
@@ -190,9 +201,15 @@
     <div class="sidebar-logo"><h1>Kurt Tristan</h1><p>Explorer</p></div>
     <nav class="sidebar-nav">
       <ul>
-        <li><a href="#home" class="nav-link active"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg></div>Home</a></li>
-        <li><a href="#gallery" class="nav-link"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>Gallery</a></li>
-        <li><a href="#journal" class="nav-link"><div class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></div>Journal</a></li>
+        <li><a href="#home" class="nav-link active"><div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+        </div>Home</a></li>
+        <li><a href="#gallery" class="nav-link"><div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </div>Gallery</a></li>
+        <li><a href="#journal" class="nav-link"><div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+        </div>Journal</a></li>
       </ul>
     </nav>
     <div class="sidebar-footer"><p>&copy; 2025 Kurt Tristan</p></div>
@@ -404,10 +421,8 @@
 
     // ===== Journal Deck (Click / Keys + Dots) =====
     let deckIndex = 0;
-    let deckEntries = [];
 
     function renderJournalDeck(entries){
-      deckEntries = entries.slice(); // keep a copy
       const deck = document.getElementById('journal-deck');
       const dotsWrap = document.getElementById('deck-dots');
 
