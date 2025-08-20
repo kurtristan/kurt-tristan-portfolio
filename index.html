@@ -50,13 +50,13 @@
     .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
     .gallery-item:hover img { transform:scale(1.05); }
 
-    /* Journal (Stacked, swipeable) */
+    /* Journal (Stacked, click-to-advance) */
     .journal { padding:8rem 0; background:white; }
     .journal-container { max-width:1000px; margin:0 auto; padding:0 2rem; position: relative; }
 
     .deck-wrap {
       position: relative;
-      height: 560px;               /* fits card height */
+      height: 560px;
       margin-top: 1rem;
       display: grid;
       place-items: center;
@@ -75,13 +75,14 @@
       border-radius: 20px;
       padding: 2.2rem;
       box-shadow: 0 20px 50px rgba(0,0,0,0.12);
-      user-select: none;
-      touch-action: none;
-      transform-origin: 50% 120%;
-      transition: transform 260ms ease, opacity 260ms ease, box-shadow 260ms ease;
       display: flex;
       flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(60px) scale(0.94) rotate(-1deg);
+      transition: transform 260ms ease, opacity 260ms ease, box-shadow 260ms ease;
     }
+
     /* Title in sage */
     .card h3 { font-size: 1.8rem; margin-bottom: .4rem; color:#8A9A8E; font-weight: 700; }
     .card time { color:#8A9A8E; font-weight: 500; margin-bottom: 1rem; }
@@ -89,17 +90,40 @@
     .card .content::-webkit-scrollbar { width: 8px; }
     .card .content::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 6px; }
 
-    /* stacked look for the next cards */
-    .card:nth-child(1) { transform: translateY(0) scale(1) rotate(0deg); z-index: 4; }
-    .card:nth-child(2) { transform: translateY(14px) scale(0.985) rotate(-1deg); z-index: 3; opacity: .95; }
-    .card:nth-child(3) { transform: translateY(28px) scale(0.97) rotate(1deg); z-index: 2; opacity: .9; }
-    .card:nth-child(4) { transform: translateY(42px) scale(0.955) rotate(-1deg); z-index: 1; opacity: .85; }
-    .card:nth-child(n+5) { opacity: 0; pointer-events: none; }
+    /* stack positions (relative to the active index) */
+    .pos-0 { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1) rotate(0deg); z-index: 4; }
+    .pos-1 { opacity: .95; transform: translateY(14px) scale(.985) rotate(-1deg); z-index: 3; }
+    .pos-2 { opacity: .9;  transform: translateY(28px) scale(.97)  rotate(1deg);  z-index: 2; }
+    .pos-3 { opacity: .85; transform: translateY(42px) scale(.955) rotate(-1deg); z-index: 1; }
 
     .hint {
       position: absolute; top: -34px; left: 0; right: 0;
       text-align: center; color: #8A9A8E; font-size: .95rem;
     }
+
+    .deck-controls {
+      position: absolute;
+      bottom: -18px;
+      left: 0; right: 0;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+    .deck-btn {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      border: none;
+      background: #8A9A8E;
+      color: white;
+      font-size: 22px;
+      display: grid; place-items: center;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,.12);
+      transition: transform .2s ease, opacity .2s ease, background .2s ease;
+    }
+    .deck-btn:hover { transform: translateY(-2px); background:#6B7A6F; }
+    .deck-btn:active { transform: translateY(0); }
 
     /* Lightbox */
     .lightbox { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:.3s; }
@@ -192,9 +216,13 @@
       <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and memories.</p></div>
 
       <div class="deck-wrap">
-        <div class="hint">Swipe left or right</div>
+        <div class="hint">Click the arrows or press ← / →</div>
         <div class="deck" id="journal-deck">
           <!-- Cards injected here -->
+        </div>
+        <div class="deck-controls">
+          <button class="deck-btn" id="deck-prev" aria-label="Previous">‹</button>
+          <button class="deck-btn" id="deck-next" aria-label="Next">›</button>
         </div>
       </div>
     </div>
@@ -304,7 +332,7 @@
       });
     },{threshold:0.1,rootMargin:'0px 0px -50px 0px'});
 
-    // ===== Data Fetching =====
+    // ===== Data Fetching (Gallery) =====
     async function fetchGallery(){
       const grid = document.getElementById('gallery-grid');
       try{
@@ -358,7 +386,9 @@
       document.querySelectorAll('.gallery-item').forEach(item=> observer.observe(item));
     }
 
-    // ===== Journal: build cards & swipe deck =====
+    // ===== Journal Deck (Click / Keys) =====
+    let deckIndex = 0;
+
     function renderJournalDeck(entries){
       const deck = document.getElementById('journal-deck');
       deck.innerHTML = entries.map(e=>{
@@ -376,94 +406,36 @@
         `;
       }).join('');
 
-      initSwipeDeck(deck);
-    }
-
-    function initSwipeDeck(deck){
-      const SWIPE_THRESHOLD = 120;  // px
-      const ROTATE_FACTOR = 12;     // degrees max
-
-      Array.from(deck.children).forEach(card => makeSwipeable(card));
-
-      function makeSwipeable(card){
-        let startX=0, startY=0, dx=0, dy=0, isDown=false;
-        let startTime=0;
-
-        const onPointerDown = (e)=>{
-          isDown = true;
-          startTime = Date.now();
-          const p = pointer(e);
-          startX = p.x; startY = p.y;
-          dx = dy = 0;
-          card.style.transition = 'none';
-          card.setPointerCapture?.(e.pointerId);
-        };
-
-        const onPointerMove = (e)=>{
-          if(!isDown) return;
-          const p = pointer(e);
-          dx = p.x - startX;
-          dy = p.y - startY * 0.3; // dampen vertical
-          const rot = Math.max(-ROTATE_FACTOR, Math.min(ROTATE_FACTOR, dx/10));
-          card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
-          card.style.boxShadow = `0 30px 60px rgba(0,0,0,${0.12 + Math.min(Math.abs(dx)/600, 0.18)})`;
-        };
-
-        const onPointerUp = ()=>{
-          if(!isDown) return;
-          isDown = false;
-
-          const dt = Date.now() - startTime;
-          const velocityX = dx / Math.max(dt,1); // px/ms
-          const shouldSwipe = Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(velocityX) > 0.6;
-
-          if(shouldSwipe){
-            const dir = dx > 0 ? 1 : -1;
-            card.style.transition = 'transform 280ms ease, opacity 280ms ease';
-            card.style.transform = `translate(${dir*window.innerWidth}px, ${dy}px) rotate(${dir*18}deg)`;
-            card.style.opacity = '0';
-
-            setTimeout(()=>{
-              card.style.transition = 'none';
-              card.style.opacity = '1';
-              card.style.transform = 'translateY(40px) scale(0.955) rotate(-1deg)'; // place at back baseline
-              deck.appendChild(card); // move to end
-              requestAnimationFrame(()=> layoutStack());
-            }, 280);
-          }else{
-            card.style.transition = 'transform 220ms ease, box-shadow 220ms ease';
-            card.style.transform = '';
-            card.style.boxShadow = '';
-          }
-        };
-
-        // Support mouse/touch/pointer
-        card.addEventListener('pointerdown', onPointerDown);
-        card.addEventListener('pointermove', onPointerMove);
-        card.addEventListener('pointerup', onPointerUp);
-        card.addEventListener('pointercancel', onPointerUp);
-        card.addEventListener('pointerleave', onPointerUp);
-
-        function pointer(e){
-          if(e.touches && e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY};
-          return {x:e.clientX, y:e.clientY};
-        }
-      }
-
-      // Re‑apply stacked transforms to first few cards after reorder
-      function layoutStack(){
-        const cards = Array.from(deck.children);
-        cards.forEach((c,i)=>{
-          c.style.transition = 'transform 260ms ease, opacity 260ms ease, box-shadow 260ms ease';
-          if(i===0){ c.style.transform='translateY(0) scale(1) rotate(0deg)'; c.style.zIndex=4; c.style.opacity='1'; }
-          else if(i===1){ c.style.transform='translateY(14px) scale(0.985) rotate(-1deg)'; c.style.zIndex=3; c.style.opacity='.95'; }
-          else if(i===2){ c.style.transform='translateY(28px) scale(0.97) rotate(1deg)'; c.style.zIndex=2; c.style.opacity='.9'; }
-          else if(i===3){ c.style.transform='translateY(42px) scale(0.955) rotate(-1deg)'; c.style.zIndex=1; c.style.opacity='.85'; }
-          else { c.style.opacity='0'; c.style.pointerEvents='none'; }
+      const cards = Array.from(deck.children);
+      function layout(){
+        const n = cards.length;
+        cards.forEach((card, i) => {
+          card.classList.remove('pos-0','pos-1','pos-2','pos-3');
+          card.style.opacity = '0';
+          card.style.pointerEvents = 'none';
+          const off = (i - deckIndex + n) % n;
+          if (off === 0){ card.classList.add('pos-0'); }
+          else if (off === 1){ card.classList.add('pos-1'); }
+          else if (off === 2){ card.classList.add('pos-2'); }
+          else if (off === 3){ card.classList.add('pos-3'); }
+          if (off <= 3){ card.style.opacity = ''; card.style.pointerEvents = ''; }
         });
       }
 
-      layoutStack();
+      function next(){ deckIndex = (deckIndex + 1) % cards.length; layout(); }
+      function prev(){ deckIndex = (deckIndex - 1 + cards.length) % cards.length; layout(); }
+
+      // controls
+      document.getElementById('deck-next').onclick = next;
+      document.getElementById('deck-prev').onclick = prev;
+
+      // keyboard
+      window.addEventListener('keydown', (e)=>{
+        if (e.key === 'ArrowRight') next();
+        if (e.key === 'ArrowLeft')  prev();
+      });
+
+      layout();
     }
 
     async function fetchJournal(){
@@ -472,14 +444,13 @@
         if(!res.ok) throw new Error('HTTP '+res.status);
         const entries = await res.json();
         if(!Array.isArray(entries) || entries.length===0) throw new Error('No entries');
-
-        // Build deck (newest first is typical from your endpoint)
         renderJournalDeck(entries);
       }catch(err){
         console.warn('Journal fetch failed, using fallback:', err);
         renderJournalDeck([
           { title:'Moment', entry_date:'2025-05-25', content:'Sometimes the image is about feeling, not pixels.' },
-          { title:'Wander', entry_date:'2025-06-10', content:'Movement invites meaning.' }
+          { title:'Wander', entry_date:'2025-06-10', content:'Movement invites meaning.' },
+          { title:'Sage', entry_date:'2025-07-15', content:'Green as a feeling.' }
         ]);
       }
     }
