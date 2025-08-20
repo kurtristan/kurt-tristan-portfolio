@@ -42,15 +42,14 @@
     .gallery-card { background: #f9f9f9; border-radius: 12px; padding: 1rem; border: 2px solid #ddd; display: flex; flex-direction: column; gap: .55rem; }
     .gallery-card img { width: 100%; height: 170px; object-fit: cover; border-radius: 10px; }
     .gallery-meta { font-size: .95rem; color: #555; }
-    .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; font-size: .9rem; color: #666; }
     .tagline { font-size: .9rem; color: #6b6b6b; }
+    .actions { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
 
     .journal-entries { margin-bottom: 2rem; display: grid; gap: 1rem; }
     .journal-card { background: #F5F1E8; border-radius: 10px; padding: 1.25rem; border: 2px solid #ddd; }
     .journal-card h3 { margin-bottom: .4rem; color: #2c2c2c; }
     .journal-card .date { color: #8A9A8E; font-weight: 500; margin-bottom: .6rem; }
     .journal-card .content { color: #666; line-height: 1.6; white-space: pre-wrap; }
-    .actions { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
 
     .upload-area { border: 3px dashed #8A9A8E; border-radius: 10px; padding: 3rem; text-align: center; margin-bottom: 1rem; transition: all .3s; cursor: pointer; }
     .upload-area:hover { background: rgba(138,154,142,.1); }
@@ -58,7 +57,7 @@
 
     .message { padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
     .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .message.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
     .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #8A9A8E; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -92,7 +91,7 @@
       <!-- Gallery -->
       <div id="gallery-tab" class="tab-content active">
         <h2>Gallery Manager</h2>
-        <p>Manage your photography gallery, <strong>photo info</strong>, and locations</p>
+        <p>Manage your gallery, photo info, and locations</p>
 
         <div id="gallery-messages"></div>
 
@@ -113,40 +112,16 @@
             <input type="text" id="photo-title" placeholder="Optional title">
           </div>
           <div class="form-group">
-            <label for="photo-caption">Caption / Description</label>
+            <label for="photo-caption">Caption</label>
             <input type="text" id="photo-caption" placeholder="Short caption">
-          </div>
-          <div class="form-group">
-            <label for="photo-tags">Tags</label>
-            <input type="text" id="photo-tags" placeholder="Comma-separated e.g. sunset, ridge">
-          </div>
-          <div class="form-group">
-            <label for="photo-taken">Taken on</label>
-            <input type="date" id="photo-taken">
           </div>
           <div class="form-group">
             <label for="photo-camera">Camera</label>
             <input type="text" id="photo-camera" placeholder="e.g., Fujifilm X-T5">
           </div>
           <div class="form-group">
-            <label for="photo-lens">Lens</label>
-            <input type="text" id="photo-lens" placeholder="e.g., 23mm f/1.4">
-          </div>
-          <div class="form-group">
-            <label for="photo-aperture">Aperture</label>
-            <input type="text" id="photo-aperture" placeholder="e.g., f/2.0">
-          </div>
-          <div class="form-group">
-            <label for="photo-shutter">Shutter</label>
-            <input type="text" id="photo-shutter" placeholder="e.g., 1/250">
-          </div>
-          <div class="form-group">
-            <label for="photo-iso">ISO</label>
-            <input type="text" id="photo-iso" placeholder="e.g., 400">
-          </div>
-          <div class="form-group">
-            <label for="photo-focal">Focal Length</label>
-            <input type="text" id="photo-focal" placeholder="e.g., 35mm">
+            <label for="photo-film">Film</label>
+            <input type="text" id="photo-film" placeholder="e.g., Portra 400">
           </div>
         </div>
 
@@ -197,10 +172,9 @@
     let journalData = [];
     let droppedFile = null;
 
-    // Which photo cards are in inline edit mode
+    // Inline edit tracking
     const photoEditingIds = new Set();
-    // Which journal cards are in inline edit mode
-    const editingIds = new Set();
+    const journalEditingIds = new Set();
 
     // ---------- Utils ----------
     const showMessage = (containerId, message, type) => {
@@ -248,7 +222,7 @@
       if (tabName === 'journal') loadJournal();
     }
 
-    // ---------- Drag & Drop ----------
+    // ---------- Drag & Drop (gallery upload) ----------
     (function setupDnD() {
       const upload = document.getElementById('photo-upload');
       const input = document.getElementById('photo-input');
@@ -321,7 +295,6 @@
         card.appendChild(img);
 
         if (!editing) {
-          // ---- View mode
           const h4 = document.createElement('h4');
           h4.textContent = item.title || item.filename || `Image ${item.id ?? ''}`;
           card.appendChild(h4);
@@ -333,25 +306,14 @@
             card.appendChild(cap);
           }
 
-          const meta = document.createElement('div');
-          meta.className = 'meta-row';
-          const left = document.createElement('div');
-          const right = document.createElement('div');
-          left.innerHTML = `<strong>Camera:</strong> ${item.camera || '—'}<br><strong>Lens:</strong> ${item.lens || '—'}<br><strong>Taken:</strong> ${toYMD(item.taken_at) || '—'}`;
-          right.innerHTML = `<strong>Aperture:</strong> ${item.aperture || '—'}<br><strong>Shutter:</strong> ${item.shutter || '—'}<br><strong>ISO:</strong> ${item.iso || '—'}<br><strong>Focal:</strong> ${item.focal_length || '—'}`;
-          meta.appendChild(left); meta.appendChild(right);
-          card.appendChild(meta);
-
-          const tags = (item.tags || '').toString().trim();
-          const loc = item.location || '—';
           const tagLine = document.createElement('div');
           tagLine.className = 'tagline';
-          tagLine.textContent = `Tags: ${tags || '—'}`;
+          tagLine.textContent = `Camera: ${item.camera || '—'} · Film: ${item.film || '—'}`;
           card.appendChild(tagLine);
 
           const locLine = document.createElement('div');
           locLine.className = 'tagline';
-          locLine.textContent = `Location: ${loc}`;
+          locLine.textContent = `Location: ${item.location || '—'}`;
           card.appendChild(locLine);
 
           const actions = document.createElement('div');
@@ -365,7 +327,7 @@
           const locBtn = document.createElement('button');
           locBtn.className = 'btn btn-secondary';
           locBtn.textContent = 'Edit Location';
-          locBtn.onclick = () => editLocation(item); // unchanged
+          locBtn.onclick = () => editLocation(item); // separate flow
 
           const delBtn = document.createElement('button');
           delBtn.className = 'btn btn-danger';
@@ -377,20 +339,14 @@
           actions.appendChild(delBtn);
           card.appendChild(actions);
         } else {
-          // ---- Edit Info mode (inline) — location left alone
+          // ---- Inline edit (Title, Caption, Camera, Film only)
           const grid = document.createElement('div');
           grid.className = 'form-grid';
 
-          grid.appendChild(formGroup('Title', `p-title-${item.id}`, 'text', item.title || ''));
+          grid.appendChild(formGroup('Title',   `p-title-${item.id}`,   'text', item.title || ''));
           grid.appendChild(formGroup('Caption', `p-caption-${item.id}`, 'text', item.caption || ''));
-          grid.appendChild(formGroup('Tags (comma-separated)', `p-tags-${item.id}`, 'text', item.tags || ''));
-          grid.appendChild(formGroup('Taken on', `p-taken-${item.id}`, 'date', toYMD(item.taken_at) || ''));
-          grid.appendChild(formGroup('Camera', `p-camera-${item.id}`, 'text', item.camera || ''));
-          grid.appendChild(formGroup('Lens', `p-lens-${item.id}`, 'text', item.lens || ''));
-          grid.appendChild(formGroup('Aperture', `p-aperture-${item.id}`, 'text', item.aperture || ''));
-          grid.appendChild(formGroup('Shutter', `p-shutter-${item.id}`, 'text', item.shutter || ''));
-          grid.appendChild(formGroup('ISO', `p-iso-${item.id}`, 'text', item.iso || ''));
-          grid.appendChild(formGroup('Focal Length', `p-focal-${item.id}`, 'text', item.focal_length || ''));
+          grid.appendChild(formGroup('Camera',  `p-camera-${item.id}`,  'text', item.camera || ''));
+          grid.appendChild(formGroup('Film',    `p-film-${item.id}`,    'text', item.film || ''));
 
           card.appendChild(grid);
 
@@ -422,8 +378,9 @@
       const label = document.createElement('label');
       label.setAttribute('for', id);
       label.textContent = labelText;
-      const input = document.createElement('input');
-      input.id = id; input.type = type; input.value = value || '';
+      const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+      if (type !== 'textarea') input.type = type;
+      input.id = id; input.value = value || '';
       wrap.appendChild(label); wrap.appendChild(input);
       return wrap;
     }
@@ -433,20 +390,13 @@
       const input = document.getElementById('photo-input');
       const file = droppedFile || (input.files ? input.files[0] : null);
 
-      // new info fields
       const title = document.getElementById('photo-title').value.trim();
       const caption = document.getElementById('photo-caption').value.trim();
-      const tags = document.getElementById('photo-tags').value.trim();
-      const taken_at = document.getElementById('photo-taken').value;
       const camera = document.getElementById('photo-camera').value.trim();
-      const lens = document.getElementById('photo-lens').value.trim();
-      const aperture = document.getElementById('photo-aperture').value.trim();
-      const shutter = document.getElementById('photo-shutter').value.trim();
-      const iso = document.getElementById('photo-iso').value.trim();
-      const focal_length = document.getElementById('photo-focal').value.trim();
+      const film   = document.getElementById('photo-film').value.trim();
 
       if (!file) { showMessage('gallery-messages', 'Please select an image.', 'error'); return; }
-      if (!loc) { showMessage('gallery-messages', 'Please enter a photo location.', 'error'); return; }
+      if (!loc)  { showMessage('gallery-messages', 'Please enter a photo location.', 'error'); return; }
 
       setLoading('upload-btn', true);
       try {
@@ -456,17 +406,10 @@
           image: dataUrl,
           filename: file.name,
           location: loc,
-          // include only non-empty info fields
           ...(title && { title }),
           ...(caption && { caption }),
-          ...(tags && { tags }),
-          ...(taken_at && { taken_at }),
           ...(camera && { camera }),
-          ...(lens && { lens }),
-          ...(aperture && { aperture }),
-          ...(shutter && { shutter }),
-          ...(iso && { iso }),
-          ...(focal_length && { focal_length }),
+          ...(film && { film }),
         };
 
         const res = await fetch(`${API_BASE}/gallery`, {
@@ -481,14 +424,8 @@
         document.getElementById('photo-location').value = '';
         document.getElementById('photo-title').value = '';
         document.getElementById('photo-caption').value = '';
-        document.getElementById('photo-tags').value = '';
-        document.getElementById('photo-taken').value = '';
         document.getElementById('photo-camera').value = '';
-        document.getElementById('photo-lens').value = '';
-        document.getElementById('photo-aperture').value = '';
-        document.getElementById('photo-shutter').value = '';
-        document.getElementById('photo-iso').value = '';
-        document.getElementById('photo-focal').value = '';
+        document.getElementById('photo-film').value = '';
 
         showMessage('gallery-messages', 'Photo added!', 'success');
         await loadGallery();
@@ -500,7 +437,7 @@
       }
     }
 
-    // PUT /.netlify/functions/gallery with { id, location } – unchanged
+    // PUT /.netlify/functions/gallery with { id, location } – keep separate
     async function editLocation(item) {
       const current = item.location || '';
       const next = prompt('Update location:', current);
@@ -523,53 +460,23 @@
       }
     }
 
-    // NEW: Save photo info (not location)
+    // Save Title/Caption/Camera/Film
     async function savePhotoInfo(item) {
       const id = item.id;
       if (!id) return;
 
-      const title = document.getElementById(`p-title-${id}`)?.value.trim();
-      const caption = document.getElementById(`p-caption-${id}`)?.value.trim();
-      const tags = document.getElementById(`p-tags-${id}`)?.value.trim();
-      const taken_at = document.getElementById(`p-taken-${id}`)?.value;
-      const camera = document.getElementById(`p-camera-${id}`)?.value.trim();
-      const lens = document.getElementById(`p-lens-${id}`)?.value.trim();
-      const aperture = document.getElementById(`p-aperture-${id}`)?.value.trim();
-      const shutter = document.getElementById(`p-shutter-${id}`)?.value.trim();
-      const iso = document.getElementById(`p-iso-${id}`)?.value.trim();
-      const focal_length = document.getElementById(`p-focal-${id}`)?.value.trim();
+      const title   = document.getElementById(`p-title-${id}`)?.value.trim() ?? '';
+      const caption = document.getElementById(`p-caption-${id}`)?.value.trim() ?? '';
+      const camera  = document.getElementById(`p-camera-${id}`)?.value.trim() ?? '';
+      const film    = document.getElementById(`p-film-${id}`)?.value.trim() ?? '';
 
-      // Build a PATCH object with only changed fields
-      const fields = {};
-      const addIfChanged = (key, newVal, oldVal) => {
-        const nv = (newVal ?? '').toString();
-        const ov = (oldVal ?? '').toString();
-        if (nv !== ov && nv !== '') fields[key] = newVal;
-        if (nv === '' && ov !== '') fields[key] = ''; // allow clearing
-      };
-
-      addIfChanged('title', title, item.title);
-      addIfChanged('caption', caption, item.caption);
-      addIfChanged('tags', tags, item.tags);
-      addIfChanged('taken_at', taken_at, toYMD(item.taken_at));
-      addIfChanged('camera', camera, item.camera);
-      addIfChanged('lens', lens, item.lens);
-      addIfChanged('aperture', aperture, item.aperture);
-      addIfChanged('shutter', shutter, item.shutter);
-      addIfChanged('iso', iso, item.iso);
-      addIfChanged('focal_length', focal_length, item.focal_length);
-
-      if (Object.keys(fields).length === 0) {
-        photoEditingIds.delete(id);
-        renderGallery();
-        return;
-      }
+      const payload = { id, title, caption, camera, film };
 
       try {
         const res = await fetch(`${API_BASE}/gallery`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, ...fields }) // location untouched
+          body: JSON.stringify(payload)
         });
         if (!res.ok) {
           const t = await res.text().catch(() => '');
@@ -584,7 +491,7 @@
       }
     }
 
-    // DELETE /.netlify/functions/gallery  with { id }
+    // DELETE photo
     async function removePhoto(item) {
       if (!confirm('Remove this photo?')) return;
       try {
@@ -602,7 +509,7 @@
       }
     }
 
-    // ---------- Journal (inline editing kept from earlier) ----------
+    // ---------- Journal ----------
     async function loadJournal() {
       const box = document.getElementById('current-journal');
       try {
@@ -633,7 +540,7 @@
       }
 
       journalData.forEach(entry => {
-        const editing = editingIds.has(entry.id);
+        const editing = journalEditingIds.has(entry.id);
         const card = document.createElement('div');
         card.className = 'journal-card';
 
@@ -655,7 +562,7 @@
           const editBtn = document.createElement('button');
           editBtn.className = 'btn btn-secondary';
           editBtn.textContent = 'Edit';
-          editBtn.onclick = () => { editingIds.add(entry.id); renderJournal(); };
+          editBtn.onclick = () => { journalEditingIds.add(entry.id); renderJournal(); };
 
           const delBtn = document.createElement('button');
           delBtn.className = 'btn btn-danger';
@@ -696,7 +603,7 @@
           const cancelBtn = document.createElement('button');
           cancelBtn.className = 'btn btn-secondary';
           cancelBtn.textContent = 'Cancel';
-          cancelBtn.onclick = () => { editingIds.delete(entry.id); renderJournal(); };
+          cancelBtn.onclick = () => { journalEditingIds.delete(entry.id); renderJournal(); };
 
           actions.appendChild(saveBtn);
           actions.appendChild(cancelBtn);
@@ -732,7 +639,7 @@
           throw new Error(`HTTP ${res.status} ${t}`);
         }
         showMessage('journal-messages', 'Entry updated.', 'success');
-        editingIds.delete(id);
+        journalEditingIds.delete(id);
         await loadJournal();
       } catch (err) {
         console.error(err);
