@@ -1,9 +1,9 @@
 // netlify/functions/gallery.js
-// REST API for your gallery (no `path` column required).
+// REST API for your gallery.
 // Methods:
 //   GET    /.netlify/functions/gallery
-//   POST   /.netlify/functions/gallery     { image (DataURL) | dataUrl, filename, location }
-//   PUT    /.netlify/functions/gallery     { id, location? , image_url? }
+//   POST   /.netlify/functions/gallery     { image|dataUrl, filename, location?, title?, caption?, camera?, film? }
+//   PUT    /.netlify/functions/gallery     { id, location?, image_url?, title?, caption?, camera?, film? }
 //   DELETE /.netlify/functions/gallery     { id }
 //
 // Required Netlify env vars (Site settings → Environment):
@@ -103,11 +103,11 @@ exports.handler = async (event) => {
       }
 
       // POST: upload + insert row
-      // body: { image (DataURL) | dataUrl, filename, location }
+      // body: { image|dataUrl, filename, location?, title?, caption?, camera?, film? }
       case 'POST': {
         const body = JSON.parse(event.body || '{}');
         const image = body.image || body.dataUrl;
-        const { filename, location } = body;
+        const { filename } = body;
         if (!image || !filename) return json(400, { error: 'image and filename required' });
 
         const { contentType, buffer } = parseDataUrl(image);
@@ -132,12 +132,17 @@ exports.handler = async (event) => {
 
         const publicUrl = objectPublic(BUCKET, objectPath);
 
+        // Only keep the fields we support
         const payload = {
           filename: fname,
-          location: location || '',
           image_url: publicUrl,
-          // order_index: Date.now(), // optional if you use it
+          location: (body.location || '').toString(),
+          title: (body.title || '').toString(),
+          caption: (body.caption || '').toString(),
+          camera: (body.camera || '').toString(),
+          film: (body.film || '').toString(),
         };
+
         const insRes = await fetch(rest(`/${encodeURIComponent(TABLE)}`), {
           method: 'POST',
           headers: { ...headersJSON(KEY), Prefer: 'return=representation' },
@@ -153,16 +158,23 @@ exports.handler = async (event) => {
         return json(200, result);
       }
 
-      // PUT: update location and/or image_url
-      // body: { id, location?, image_url? }
+      // PUT: update supported fields
+      // body: { id, location?, image_url?, title?, caption?, camera?, film? }
       case 'PUT': {
         const body = JSON.parse(event.body || '{}');
-        const { id, location, image_url } = body || {};
+        const { id } = body || {};
         if (!id) return json(400, { error: 'Missing id' });
 
         const fields = {};
-        if (typeof location === 'string') fields.location = location;
-        if (typeof image_url === 'string') fields.image_url = image_url;
+        if (typeof body.location === 'string')  fields.location = body.location;
+        if (typeof body.image_url === 'string') fields.image_url = body.image_url;
+
+        // NEW supported fields:
+        if (typeof body.title === 'string')     fields.title = body.title;
+        if (typeof body.caption === 'string')   fields.caption = body.caption;
+        if (typeof body.camera === 'string')    fields.camera = body.camera;
+        if (typeof body.film === 'string')      fields.film = body.film;
+
         if (Object.keys(fields).length === 0) return json(400, { error: 'No updatable fields provided' });
 
         const updRes = await fetch(
