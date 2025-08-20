@@ -23,11 +23,12 @@
     .tab-content { display: none; background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 20px rgba(0,0,0,.1); }
     .tab-content.active { display: block; }
 
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: .4rem; font-weight: 600; color: #2c2c2c; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: .75rem; }
+    .form-group { margin-bottom: .9rem; }
+    .form-group label { display: block; margin-bottom: .35rem; font-weight: 600; color: #2c2c2c; }
     .form-group input, .form-group textarea { width: 100%; padding: .8rem; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; transition: border-color .3s; }
     .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #8A9A8E; }
-    .form-group textarea { resize: vertical; min-height: 120px; }
+    .form-group textarea { resize: vertical; min-height: 110px; }
 
     .btn { padding: .65rem 1rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block; }
     .btn-primary { background: #8A9A8E; color: white; }
@@ -37,16 +38,19 @@
     .btn-danger { background: #dc3545; color: white; }
     .btn-danger:hover { background: #c82333; }
 
-    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .gallery-card { background: #f9f9f9; border-radius: 10px; padding: 1rem; border: 2px solid #ddd; display: flex; flex-direction: column; gap: .5rem; }
-    .gallery-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .gallery-card { background: #f9f9f9; border-radius: 12px; padding: 1rem; border: 2px solid #ddd; display: flex; flex-direction: column; gap: .55rem; }
+    .gallery-card img { width: 100%; height: 170px; object-fit: cover; border-radius: 10px; }
+    .gallery-meta { font-size: .95rem; color: #555; }
+    .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; font-size: .9rem; color: #666; }
+    .tagline { font-size: .9rem; color: #6b6b6b; }
 
     .journal-entries { margin-bottom: 2rem; display: grid; gap: 1rem; }
     .journal-card { background: #F5F1E8; border-radius: 10px; padding: 1.25rem; border: 2px solid #ddd; }
     .journal-card h3 { margin-bottom: .4rem; color: #2c2c2c; }
     .journal-card .date { color: #8A9A8E; font-weight: 500; margin-bottom: .6rem; }
     .journal-card .content { color: #666; line-height: 1.6; white-space: pre-wrap; }
-    .journal-card .actions { margin-top: .75rem; display: flex; gap: .5rem; }
+    .actions { margin-top: .6rem; display: flex; gap: .5rem; flex-wrap: wrap; }
 
     .upload-area { border: 3px dashed #8A9A8E; border-radius: 10px; padding: 3rem; text-align: center; margin-bottom: 1rem; transition: all .3s; cursor: pointer; }
     .upload-area:hover { background: rgba(138,154,142,.1); }
@@ -88,7 +92,7 @@
       <!-- Gallery -->
       <div id="gallery-tab" class="tab-content active">
         <h2>Gallery Manager</h2>
-        <p>Manage your photography gallery and locations</p>
+        <p>Manage your photography gallery, <strong>photo info</strong>, and locations</p>
 
         <div id="gallery-messages"></div>
 
@@ -103,6 +107,49 @@
           <input type="file" id="photo-input" accept="image/*" style="display:none">
         </div>
 
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="photo-title">Title</label>
+            <input type="text" id="photo-title" placeholder="Optional title">
+          </div>
+          <div class="form-group">
+            <label for="photo-caption">Caption / Description</label>
+            <input type="text" id="photo-caption" placeholder="Short caption">
+          </div>
+          <div class="form-group">
+            <label for="photo-tags">Tags</label>
+            <input type="text" id="photo-tags" placeholder="Comma-separated e.g. sunset, ridge">
+          </div>
+          <div class="form-group">
+            <label for="photo-taken">Taken on</label>
+            <input type="date" id="photo-taken">
+          </div>
+          <div class="form-group">
+            <label for="photo-camera">Camera</label>
+            <input type="text" id="photo-camera" placeholder="e.g., Fujifilm X-T5">
+          </div>
+          <div class="form-group">
+            <label for="photo-lens">Lens</label>
+            <input type="text" id="photo-lens" placeholder="e.g., 23mm f/1.4">
+          </div>
+          <div class="form-group">
+            <label for="photo-aperture">Aperture</label>
+            <input type="text" id="photo-aperture" placeholder="e.g., f/2.0">
+          </div>
+          <div class="form-group">
+            <label for="photo-shutter">Shutter</label>
+            <input type="text" id="photo-shutter" placeholder="e.g., 1/250">
+          </div>
+          <div class="form-group">
+            <label for="photo-iso">ISO</label>
+            <input type="text" id="photo-iso" placeholder="e.g., 400">
+          </div>
+          <div class="form-group">
+            <label for="photo-focal">Focal Length</label>
+            <input type="text" id="photo-focal" placeholder="e.g., 35mm">
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="photo-location">Photo Location</label>
           <input type="text" id="photo-location" placeholder="e.g., San Francisco, CA">
@@ -114,7 +161,7 @@
       <!-- Journal -->
       <div id="journal-tab" class="tab-content">
         <h2>Journal Manager</h2>
-        <p>Write and manage your journal entries</p>
+        <p>Write, edit, and manage your journal entries</p>
 
         <div id="journal-messages"></div>
 
@@ -150,7 +197,9 @@
     let journalData = [];
     let droppedFile = null;
 
-    // Which entries are currently being edited (inline)
+    // Which photo cards are in inline edit mode
+    const photoEditingIds = new Set();
+    // Which journal cards are in inline edit mode
     const editingIds = new Set();
 
     // ---------- Utils ----------
@@ -181,6 +230,12 @@
         r.readAsDataURL(file);
       });
 
+    const toYMD = (d) => {
+      if (!d) return '';
+      try { return (String(d).length > 10 ? new Date(d) : new Date(d+'T00:00:00')).toISOString().slice(0,10); }
+      catch { return (''+d).slice(0,10); }
+    };
+
     // ---------- Tabs ----------
     function showTab(tabName, el) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -193,7 +248,7 @@
       if (tabName === 'journal') loadJournal();
     }
 
-    // ---------- Drag & Drop (Gallery) ----------
+    // ---------- Drag & Drop ----------
     (function setupDnD() {
       const upload = document.getElementById('photo-upload');
       const input = document.getElementById('photo-input');
@@ -253,45 +308,124 @@
       }
 
       galleryData.forEach(item => {
+        const editing = photoEditingIds.has(item.id);
         const card = document.createElement('div');
         card.className = 'gallery-card';
 
         const img = document.createElement('img');
         img.src = item.image_url || item.src || '';
-        img.alt = `Gallery ${item.id ?? ''}`;
+        img.alt = item.title || item.filename || `Photo ${item.id ?? ''}`;
         img.onerror = () => {
           img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4=';
         };
-
-        const h4 = document.createElement('h4');
-        h4.textContent = item.filename || `Image ${item.id ?? ''}`;
-
-        const p = document.createElement('p');
-        p.textContent = item.location || '—';
-
-        const actions = document.createElement('div');
-        actions.style.display = 'flex';
-        actions.style.gap = '.5rem';
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-secondary';
-        editBtn.textContent = 'Edit Location';
-        editBtn.addEventListener('click', () => editLocation(item));
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'btn btn-danger';
-        delBtn.textContent = 'Remove';
-        delBtn.addEventListener('click', () => removePhoto(item));
-
-        actions.appendChild(editBtn);
-        actions.appendChild(delBtn);
-
         card.appendChild(img);
-        card.appendChild(h4);
-        card.appendChild(p);
-        card.appendChild(actions);
+
+        if (!editing) {
+          // ---- View mode
+          const h4 = document.createElement('h4');
+          h4.textContent = item.title || item.filename || `Image ${item.id ?? ''}`;
+          card.appendChild(h4);
+
+          if (item.caption) {
+            const cap = document.createElement('div');
+            cap.className = 'gallery-meta';
+            cap.textContent = item.caption;
+            card.appendChild(cap);
+          }
+
+          const meta = document.createElement('div');
+          meta.className = 'meta-row';
+          const left = document.createElement('div');
+          const right = document.createElement('div');
+          left.innerHTML = `<strong>Camera:</strong> ${item.camera || '—'}<br><strong>Lens:</strong> ${item.lens || '—'}<br><strong>Taken:</strong> ${toYMD(item.taken_at) || '—'}`;
+          right.innerHTML = `<strong>Aperture:</strong> ${item.aperture || '—'}<br><strong>Shutter:</strong> ${item.shutter || '—'}<br><strong>ISO:</strong> ${item.iso || '—'}<br><strong>Focal:</strong> ${item.focal_length || '—'}`;
+          meta.appendChild(left); meta.appendChild(right);
+          card.appendChild(meta);
+
+          const tags = (item.tags || '').toString().trim();
+          const loc = item.location || '—';
+          const tagLine = document.createElement('div');
+          tagLine.className = 'tagline';
+          tagLine.textContent = `Tags: ${tags || '—'}`;
+          card.appendChild(tagLine);
+
+          const locLine = document.createElement('div');
+          locLine.className = 'tagline';
+          locLine.textContent = `Location: ${loc}`;
+          card.appendChild(locLine);
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+          const infoBtn = document.createElement('button');
+          infoBtn.className = 'btn btn-secondary';
+          infoBtn.textContent = 'Edit Info';
+          infoBtn.onclick = () => { photoEditingIds.add(item.id); renderGallery(); };
+
+          const locBtn = document.createElement('button');
+          locBtn.className = 'btn btn-secondary';
+          locBtn.textContent = 'Edit Location';
+          locBtn.onclick = () => editLocation(item); // unchanged
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-danger';
+          delBtn.textContent = 'Remove';
+          delBtn.onclick = () => removePhoto(item);
+
+          actions.appendChild(infoBtn);
+          actions.appendChild(locBtn);
+          actions.appendChild(delBtn);
+          card.appendChild(actions);
+        } else {
+          // ---- Edit Info mode (inline) — location left alone
+          const grid = document.createElement('div');
+          grid.className = 'form-grid';
+
+          grid.appendChild(formGroup('Title', `p-title-${item.id}`, 'text', item.title || ''));
+          grid.appendChild(formGroup('Caption', `p-caption-${item.id}`, 'text', item.caption || ''));
+          grid.appendChild(formGroup('Tags (comma-separated)', `p-tags-${item.id}`, 'text', item.tags || ''));
+          grid.appendChild(formGroup('Taken on', `p-taken-${item.id}`, 'date', toYMD(item.taken_at) || ''));
+          grid.appendChild(formGroup('Camera', `p-camera-${item.id}`, 'text', item.camera || ''));
+          grid.appendChild(formGroup('Lens', `p-lens-${item.id}`, 'text', item.lens || ''));
+          grid.appendChild(formGroup('Aperture', `p-aperture-${item.id}`, 'text', item.aperture || ''));
+          grid.appendChild(formGroup('Shutter', `p-shutter-${item.id}`, 'text', item.shutter || ''));
+          grid.appendChild(formGroup('ISO', `p-iso-${item.id}`, 'text', item.iso || ''));
+          grid.appendChild(formGroup('Focal Length', `p-focal-${item.id}`, 'text', item.focal_length || ''));
+
+          card.appendChild(grid);
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'btn btn-primary';
+          saveBtn.textContent = 'Save Info';
+          saveBtn.onclick = () => savePhotoInfo(item);
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn btn-secondary';
+          cancelBtn.textContent = 'Cancel';
+          cancelBtn.onclick = () => { photoEditingIds.delete(item.id); renderGallery(); };
+
+          actions.appendChild(saveBtn);
+          actions.appendChild(cancelBtn);
+          card.appendChild(actions);
+        }
+
         container.appendChild(card);
       });
+    }
+
+    function formGroup(labelText, id, type, value) {
+      const wrap = document.createElement('div');
+      wrap.className = 'form-group';
+      const label = document.createElement('label');
+      label.setAttribute('for', id);
+      label.textContent = labelText;
+      const input = document.createElement('input');
+      input.id = id; input.type = type; input.value = value || '';
+      wrap.appendChild(label); wrap.appendChild(input);
+      return wrap;
     }
 
     async function uploadPhoto() {
@@ -299,13 +433,41 @@
       const input = document.getElementById('photo-input');
       const file = droppedFile || (input.files ? input.files[0] : null);
 
+      // new info fields
+      const title = document.getElementById('photo-title').value.trim();
+      const caption = document.getElementById('photo-caption').value.trim();
+      const tags = document.getElementById('photo-tags').value.trim();
+      const taken_at = document.getElementById('photo-taken').value;
+      const camera = document.getElementById('photo-camera').value.trim();
+      const lens = document.getElementById('photo-lens').value.trim();
+      const aperture = document.getElementById('photo-aperture').value.trim();
+      const shutter = document.getElementById('photo-shutter').value.trim();
+      const iso = document.getElementById('photo-iso').value.trim();
+      const focal_length = document.getElementById('photo-focal').value.trim();
+
       if (!file) { showMessage('gallery-messages', 'Please select an image.', 'error'); return; }
       if (!loc) { showMessage('gallery-messages', 'Please enter a photo location.', 'error'); return; }
 
       setLoading('upload-btn', true);
       try {
         const dataUrl = await fileToDataURL(file);
-        const payload = { image: dataUrl, filename: file.name, location: loc };
+
+        const payload = {
+          image: dataUrl,
+          filename: file.name,
+          location: loc,
+          // include only non-empty info fields
+          ...(title && { title }),
+          ...(caption && { caption }),
+          ...(tags && { tags }),
+          ...(taken_at && { taken_at }),
+          ...(camera && { camera }),
+          ...(lens && { lens }),
+          ...(aperture && { aperture }),
+          ...(shutter && { shutter }),
+          ...(iso && { iso }),
+          ...(focal_length && { focal_length }),
+        };
 
         const res = await fetch(`${API_BASE}/gallery`, {
           method: 'POST',
@@ -314,9 +476,19 @@
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        droppedFile = null;
-        input.value = '';
+        // reset fields
+        droppedFile = null; input.value = '';
         document.getElementById('photo-location').value = '';
+        document.getElementById('photo-title').value = '';
+        document.getElementById('photo-caption').value = '';
+        document.getElementById('photo-tags').value = '';
+        document.getElementById('photo-taken').value = '';
+        document.getElementById('photo-camera').value = '';
+        document.getElementById('photo-lens').value = '';
+        document.getElementById('photo-aperture').value = '';
+        document.getElementById('photo-shutter').value = '';
+        document.getElementById('photo-iso').value = '';
+        document.getElementById('photo-focal').value = '';
 
         showMessage('gallery-messages', 'Photo added!', 'success');
         await loadGallery();
@@ -328,6 +500,7 @@
       }
     }
 
+    // PUT /.netlify/functions/gallery with { id, location } – unchanged
     async function editLocation(item) {
       const current = item.location || '';
       const next = prompt('Update location:', current);
@@ -350,6 +523,68 @@
       }
     }
 
+    // NEW: Save photo info (not location)
+    async function savePhotoInfo(item) {
+      const id = item.id;
+      if (!id) return;
+
+      const title = document.getElementById(`p-title-${id}`)?.value.trim();
+      const caption = document.getElementById(`p-caption-${id}`)?.value.trim();
+      const tags = document.getElementById(`p-tags-${id}`)?.value.trim();
+      const taken_at = document.getElementById(`p-taken-${id}`)?.value;
+      const camera = document.getElementById(`p-camera-${id}`)?.value.trim();
+      const lens = document.getElementById(`p-lens-${id}`)?.value.trim();
+      const aperture = document.getElementById(`p-aperture-${id}`)?.value.trim();
+      const shutter = document.getElementById(`p-shutter-${id}`)?.value.trim();
+      const iso = document.getElementById(`p-iso-${id}`)?.value.trim();
+      const focal_length = document.getElementById(`p-focal-${id}`)?.value.trim();
+
+      // Build a PATCH object with only changed fields
+      const fields = {};
+      const addIfChanged = (key, newVal, oldVal) => {
+        const nv = (newVal ?? '').toString();
+        const ov = (oldVal ?? '').toString();
+        if (nv !== ov && nv !== '') fields[key] = newVal;
+        if (nv === '' && ov !== '') fields[key] = ''; // allow clearing
+      };
+
+      addIfChanged('title', title, item.title);
+      addIfChanged('caption', caption, item.caption);
+      addIfChanged('tags', tags, item.tags);
+      addIfChanged('taken_at', taken_at, toYMD(item.taken_at));
+      addIfChanged('camera', camera, item.camera);
+      addIfChanged('lens', lens, item.lens);
+      addIfChanged('aperture', aperture, item.aperture);
+      addIfChanged('shutter', shutter, item.shutter);
+      addIfChanged('iso', iso, item.iso);
+      addIfChanged('focal_length', focal_length, item.focal_length);
+
+      if (Object.keys(fields).length === 0) {
+        photoEditingIds.delete(id);
+        renderGallery();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/gallery`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ...fields }) // location untouched
+        });
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status} ${t}`);
+        }
+        showMessage('gallery-messages', 'Photo info updated.', 'success');
+        photoEditingIds.delete(id);
+        await loadGallery();
+      } catch (err) {
+        console.error(err);
+        showMessage('gallery-messages', 'Failed to update photo info.', 'error');
+      }
+    }
+
+    // DELETE /.netlify/functions/gallery  with { id }
     async function removePhoto(item) {
       if (!confirm('Remove this photo?')) return;
       try {
@@ -367,7 +602,7 @@
       }
     }
 
-    // ---------- Journal ----------
+    // ---------- Journal (inline editing kept from earlier) ----------
     async function loadJournal() {
       const box = document.getElementById('current-journal');
       try {
@@ -389,13 +624,6 @@
       }
     }
 
-    const toYMD = (d) => {
-      if (!d) return '';
-      // handle timestamp or YYYY-MM-DD
-      try { return (d.length > 10 ? new Date(d) : new Date(d+'T00:00:00')).toISOString().slice(0,10); }
-      catch { return (''+d).slice(0,10); }
-    };
-
     function renderJournal() {
       const box = document.getElementById('current-journal');
       box.innerHTML = '';
@@ -410,7 +638,6 @@
         card.className = 'journal-card';
 
         if (!editing) {
-          // ---- View mode
           const h3 = document.createElement('h3');
           h3.textContent = entry.title || 'Untitled';
 
@@ -443,39 +670,20 @@
           card.appendChild(contentEl);
           card.appendChild(actions);
         } else {
-          // ---- Edit mode (inline)
-          const titleGroup = document.createElement('div');
-          titleGroup.className = 'form-group';
-          const titleLabel = document.createElement('label');
-          titleLabel.textContent = 'Title';
-          const titleInput = document.createElement('input');
-          titleInput.type = 'text';
-          titleInput.value = entry.title || '';
-          titleInput.id = `edit-title-${entry.id}`;
-          titleGroup.appendChild(titleLabel);
-          titleGroup.appendChild(titleInput);
+          const tGrp = document.createElement('div'); tGrp.className = 'form-group';
+          const tLbl = document.createElement('label'); tLbl.textContent = 'Title';
+          const tIn = document.createElement('input'); tIn.id = `edit-title-${entry.id}`; tIn.value = entry.title || '';
+          tGrp.appendChild(tLbl); tGrp.appendChild(tIn);
 
-          const dateGroup = document.createElement('div');
-          dateGroup.className = 'form-group';
-          const dateLabel = document.createElement('label');
-          dateLabel.textContent = 'Date';
-          const dateInput = document.createElement('input');
-          dateInput.type = 'date';
-          dateInput.value = toYMD(entry.entry_date || entry.date || '');
-          dateInput.id = `edit-date-${entry.id}`;
-          dateGroup.appendChild(dateLabel);
-          dateGroup.appendChild(dateInput);
+          const dGrp = document.createElement('div'); dGrp.className = 'form-group';
+          const dLbl = document.createElement('label'); dLbl.textContent = 'Date';
+          const dIn = document.createElement('input'); dIn.type = 'date'; dIn.id = `edit-date-${entry.id}`; dIn.value = toYMD(entry.entry_date || entry.date || '');
+          dGrp.appendChild(dLbl); dGrp.appendChild(dIn);
 
-          const contentGroup = document.createElement('div');
-          contentGroup.className = 'form-group';
-          const contentLabel = document.createElement('label');
-          contentLabel.textContent = 'Content';
-          const contentInput = document.createElement('textarea');
-          contentInput.rows = 8;
-          contentInput.value = entry.content || '';
-          contentInput.id = `edit-content-${entry.id}`;
-          contentGroup.appendChild(contentLabel);
-          contentGroup.appendChild(contentInput);
+          const cGrp = document.createElement('div'); cGrp.className = 'form-group';
+          const cLbl = document.createElement('label'); cLbl.textContent = 'Content';
+          const cIn = document.createElement('textarea'); cIn.id = `edit-content-${entry.id}`; cIn.rows = 8; cIn.value = entry.content || '';
+          cGrp.appendChild(cLbl); cGrp.appendChild(cIn);
 
           const actions = document.createElement('div');
           actions.className = 'actions';
@@ -493,9 +701,9 @@
           actions.appendChild(saveBtn);
           actions.appendChild(cancelBtn);
 
-          card.appendChild(titleGroup);
-          card.appendChild(dateGroup);
-          card.appendChild(contentGroup);
+          card.appendChild(tGrp);
+          card.appendChild(dGrp);
+          card.appendChild(cGrp);
           card.appendChild(actions);
         }
 
