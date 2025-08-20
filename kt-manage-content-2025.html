@@ -8,21 +8,27 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #2c2c2c; }
+
     .admin-header { background: #8A9A8E; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     .admin-header h1 { font-size: 1.5rem; font-weight: 700; }
     .admin-header .subtitle { font-size: 0.9rem; opacity: 0.8; }
+
     .admin-container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+
     .admin-tabs { display: flex; gap: .5rem; margin-bottom: 2rem; }
     .tab-button { padding: 1rem 2rem; background: white; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; font-weight: 500; transition: all .3s; }
     .tab-button.active { background: #8A9A8E; color: white; border-color: #8A9A8E; }
     .tab-button:hover { border-color: #8A9A8E; }
+
     .tab-content { display: none; background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 20px rgba(0,0,0,.1); }
     .tab-content.active { display: block; }
+
     .form-group { margin-bottom: 1.5rem; }
     .form-group label { display: block; margin-bottom: .5rem; font-weight: 600; color: #2c2c2c; }
     .form-group input, .form-group textarea { width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; transition: border-color .3s; }
     .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #8A9A8E; }
     .form-group textarea { resize: vertical; min-height: 120px; }
+
     .btn { padding: 1rem 2rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all .3s; text-decoration: none; display: inline-block; }
     .btn-primary { background: #8A9A8E; color: white; }
     .btn-primary:hover { background: #6B7A6F; transform: translateY(-2px); }
@@ -30,22 +36,28 @@
     .btn-secondary:hover { border-color: #8A9A8E; }
     .btn-danger { background: #dc3545; color: white; }
     .btn-danger:hover { background: #c82333; }
+
     .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
     .gallery-card { background: #f9f9f9; border-radius: 10px; padding: 1rem; border: 2px solid #ddd; display: flex; flex-direction: column; gap: .5rem; }
     .gallery-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; }
+
     .journal-entries { margin-bottom: 2rem; display: grid; gap: 1rem; }
     .journal-card { background: #F5F1E8; border-radius: 10px; padding: 1.5rem; border: 2px solid #ddd; }
     .journal-card h3 { margin-bottom: .5rem; color: #2c2c2c; }
     .journal-card .date { color: #8A9A8E; font-weight: 500; margin-bottom: 1rem; }
     .journal-card .content { color: #666; line-height: 1.6; white-space: pre-wrap; }
+
     .upload-area { border: 3px dashed #8A9A8E; border-radius: 10px; padding: 3rem; text-align: center; margin-bottom: 1rem; transition: all .3s; cursor: pointer; }
     .upload-area:hover { background: rgba(138,154,142,.1); }
     .upload-area.dragover { background: rgba(138,154,142,.2); border-color: #6B7A6F; }
+
     .message { padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
     .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
     .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #8A9A8E; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     @media (max-width: 768px) {
       .admin-container { padding: 0 1rem; }
       .admin-tabs { flex-direction: column; }
@@ -74,18 +86,42 @@
 
       <!-- Gallery -->
       <div id="gallery-tab" class="tab-content active">
-        <!-- gallery code unchanged -->
+        <h2>Gallery Manager</h2>
+        <p>Manage your photography gallery and locations</p>
+
+        <div id="gallery-messages"></div>
+
+        <h3>Current Photos</h3>
+        <div class="gallery-grid" id="current-gallery">
+          <div class="loading" style="grid-column: 1/-1; justify-self: center;"></div>
+        </div>
+
+        <h3>Add New Photo</h3>
+        <div class="upload-area" id="photo-upload" onclick="document.getElementById('photo-input').click()">
+          <p>📸 Click to select or drag & drop a photo</p>
+          <input type="file" id="photo-input" accept="image/*" style="display:none">
+        </div>
+
+        <div class="form-group">
+          <label for="photo-location">Photo Location</label>
+          <input type="text" id="photo-location" placeholder="e.g., San Francisco, CA">
+        </div>
+
+        <button class="btn btn-primary" onclick="uploadPhoto()" id="upload-btn">Add Photo to Gallery</button>
       </div>
 
       <!-- Journal -->
       <div id="journal-tab" class="tab-content">
         <h2>Journal Manager</h2>
         <p>Write and manage your journal entries</p>
+
         <div id="journal-messages"></div>
+
         <h3>Current Entries</h3>
         <div class="journal-entries" id="current-journal">
           <div class="loading"></div>
         </div>
+
         <h3>Write New Entry</h3>
         <div class="form-group">
           <label for="entry-title">Entry Title</label>
@@ -105,11 +141,15 @@
   </div>
 
   <script>
+    // ---------- Config ----------
     const API_BASE = '/.netlify/functions';
+
+    // ---------- State ----------
     let galleryData = [];
     let journalData = [];
     let droppedFile = null;
 
+    // ---------- Utils ----------
     const showMessage = (containerId, message, type) => {
       const box = document.getElementById(containerId);
       box.innerHTML = `<div class="message ${type}">${message}</div>`;
@@ -129,7 +169,209 @@
       }
     };
 
-    // ... gallery code unchanged ...
+    const escapeText = (t) => {
+      const div = document.createElement('div');
+      div.textContent = String(t == null ? '' : t);
+      return div.innerHTML;
+    };
+
+    const fileToDataURL = (file) =>
+      new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+
+    // ---------- Tabs ----------
+    function showTab(tabName, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      const pane = document.getElementById(`${tabName}-tab`);
+      if (pane) pane.classList.add('active');
+      if (el) el.classList.add('active');
+
+      if (tabName === 'gallery') loadGallery();
+      if (tabName === 'journal') loadJournal();
+    }
+
+    // ---------- Drag & Drop ----------
+    (function setupDnD() {
+      const upload = document.getElementById('photo-upload');
+      const input = document.getElementById('photo-input');
+
+      upload.addEventListener('dragover', (e) => { e.preventDefault(); upload.classList.add('dragover'); });
+      upload.addEventListener('dragleave', () => upload.classList.remove('dragover'));
+      upload.addEventListener('drop', (e) => {
+        e.preventDefault();
+        upload.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const file = e.dataTransfer.files[0];
+          if (!file.type.startsWith('image/')) {
+            showMessage('gallery-messages', 'Please drop an image file.', 'error');
+            return;
+          }
+          droppedFile = file;
+          showMessage('gallery-messages', `Selected: ${escapeText(file.name)}`, 'success');
+        }
+      });
+      input.addEventListener('change', () => {
+        if (input.files && input.files[0]) {
+          droppedFile = input.files[0];
+          showMessage('gallery-messages', `Selected: ${escapeText(droppedFile.name)}`, 'success');
+        }
+      });
+    })();
+
+    // ---------- Gallery ----------
+    async function loadGallery() {
+      const container = document.getElementById('current-gallery');
+      try {
+        let res = await fetch(`${API_BASE}/gallery`);
+        if (!res.ok) {
+          // Fallback: if your function lists via POST {action:list}
+          res = await fetch(`${API_BASE}/gallery`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'list' })
+          });
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        galleryData = await res.json();
+        renderGallery();
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p style="color:#c00">Failed to load gallery.</p>';
+        showMessage('gallery-messages', 'Error loading gallery.', 'error');
+      }
+    }
+
+    function renderGallery() {
+      const container = document.getElementById('current-gallery');
+      container.innerHTML = '';
+
+      if (!Array.isArray(galleryData) || galleryData.length === 0) {
+        container.innerHTML = '<p>No photos in gallery yet.</p>';
+        return;
+      }
+
+      galleryData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'gallery-card';
+
+        const img = document.createElement('img');
+        img.src = item.image_url || item.src || '';
+        img.alt = `Gallery ${item.id ?? ''}`;
+        img.onerror = () => {
+          img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4=';
+        };
+
+        const h4 = document.createElement('h4');
+        h4.textContent = item.filename || `Image ${item.id ?? ''}`;
+
+        const p = document.createElement('p');
+        p.textContent = item.location || '—';
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '.5rem';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary';
+        editBtn.textContent = 'Edit Location';
+        editBtn.addEventListener('click', () => editLocation(item));
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-danger';
+        delBtn.textContent = 'Remove';
+        delBtn.addEventListener('click', () => removePhoto(item));
+
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(img);
+        card.appendChild(h4);
+        card.appendChild(p);
+        card.appendChild(actions);
+        container.appendChild(card);
+      });
+    }
+
+    async function uploadPhoto() {
+      const loc = document.getElementById('photo-location').value.trim();
+      const input = document.getElementById('photo-input');
+      const file = droppedFile || (input.files ? input.files[0] : null);
+
+      if (!file) { showMessage('gallery-messages', 'Please select an image.', 'error'); return; }
+      if (!loc) { showMessage('gallery-messages', 'Please enter a photo location.', 'error'); return; }
+
+      setLoading('upload-btn', true);
+      try {
+        // Backend expects JSON with { image, filename, location }
+        const dataUrl = await fileToDataURL(file);
+        const payload = { image: dataUrl, filename: file.name, location: loc };
+
+        const res = await fetch(`${API_BASE}/gallery`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        droppedFile = null;
+        input.value = '';
+        document.getElementById('photo-location').value = '';
+
+        showMessage('gallery-messages', 'Photo added!', 'success');
+        await loadGallery();
+      } catch (err) {
+        console.error(err);
+        showMessage('gallery-messages', 'Upload failed.', 'error');
+      } finally {
+        setLoading('upload-btn', false);
+      }
+    }
+
+    // PUT /.netlify/functions/gallery  with { id, location }
+    async function editLocation(item) {
+      const current = item.location || '';
+      const next = prompt('Update location:', current);
+      if (next === null) return;
+      const newLoc = next.trim();
+      if (!newLoc || newLoc === current) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/gallery`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id, location: newLoc })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showMessage('gallery-messages', 'Location updated.', 'success');
+        await loadGallery();
+      } catch (err) {
+        console.error(err);
+        showMessage('gallery-messages', 'Failed to update location.', 'error');
+      }
+    }
+
+    // DELETE /.netlify/functions/gallery  with { id }
+    async function removePhoto(item) {
+      if (!confirm('Remove this photo?')) return;
+      try {
+        const res = await fetch(`${API_BASE}/gallery`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: item.id })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showMessage('gallery-messages', 'Photo removed.', 'success');
+        await loadGallery();
+      } catch (err) {
+        console.error(err);
+        showMessage('gallery-messages', 'Failed to remove photo.', 'error');
+      }
+    }
 
     // ---------- Journal ----------
     async function loadJournal() {
@@ -137,6 +379,7 @@
       try {
         let res = await fetch(`${API_BASE}/journal`);
         if (!res.ok) {
+          // If your journal function lists via POST {action:list}
           res = await fetch(`${API_BASE}/journal`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -163,14 +406,19 @@
       journalData.forEach(entry => {
         const card = document.createElement('div');
         card.className = 'journal-card';
+
         const h3 = document.createElement('h3');
         h3.textContent = entry.title || 'Untitled';
+
         const dateEl = document.createElement('div');
         dateEl.className = 'date';
+        // Prefer DB column; fall back to old field if present
         dateEl.textContent = entry.entry_date || entry.date || '';
+
         const contentEl = document.createElement('div');
         contentEl.className = 'content';
         contentEl.textContent = entry.content || '';
+
         card.appendChild(h3);
         card.appendChild(dateEl);
         card.appendChild(contentEl);
@@ -180,23 +428,27 @@
 
     async function addJournalEntry() {
       const title = document.getElementById('entry-title').value.trim();
-      const date = document.getElementById('entry-date').value;
+      const date = document.getElementById('entry-date').value; // YYYY-MM-DD
       const content = document.getElementById('entry-content').value.trim();
+
       if (!title || !date || !content) {
         showMessage('journal-messages', 'Please provide title, date, and content.', 'error');
         return;
       }
+
       setLoading('journal-btn', true);
       try {
         const res = await fetch(`${API_BASE}/journal`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content, entry_date: date }) // ✅ fixed
+          body: JSON.stringify({ title, content, entry_date: date }) // <-- fixed mapping
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
         document.getElementById('entry-title').value = '';
         document.getElementById('entry-date').value = '';
         document.getElementById('entry-content').value = '';
+
         showMessage('journal-messages', 'Entry added.', 'success');
         await loadJournal();
       } catch (err) {
@@ -204,6 +456,22 @@
         showMessage('journal-messages', 'Failed to add entry.', 'error');
       } finally {
         setLoading('journal-btn', false);
+      }
+    }
+
+    // ---------- Trigger site build ----------
+    async function updateWebsite() {
+      setLoading('update-btn', true);
+      try {
+        const res = await fetch(`${API_BASE}/update-site`, { method: 'POST' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showMessage('gallery-messages', 'Site update triggered.', 'success');
+        showMessage('journal-messages', 'Site update triggered.', 'success');
+      } catch (err) {
+        console.error(err);
+        showMessage('gallery-messages', 'Failed to trigger update.', 'error');
+      } finally {
+        setLoading('update-btn', false);
       }
     }
 
