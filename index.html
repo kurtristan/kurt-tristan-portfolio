@@ -367,11 +367,11 @@
         const content = (e.content || e.body || '').replace(/\n/g,'<br>');
         return `
           <article class="card">
-            <header>
+            <div class="content">
               <h3>${escapeHtml(title)}</h3>
               <time>${escapeHtml(fmtDate(String(date)))}</time>
-            </header>
-            <div class="content"><p>${content}</p></div>
+              <p>${content}</p>
+            </div>
           </article>
         `;
       }).join('');
