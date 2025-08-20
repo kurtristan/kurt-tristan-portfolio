@@ -50,101 +50,55 @@
     .gallery-item img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
     .gallery-item:hover img { transform:scale(1.05); }
 
-    /* Journal */
+    /* Journal (Stacked, swipeable) */
     .journal { padding:8rem 0; background:white; }
-    .journal-container { max-width:1200px; margin:0 auto; padding:0 2rem; position: relative; }
+    .journal-container { max-width:1000px; margin:0 auto; padding:0 2rem; position: relative; }
 
-    /* Horizontal scroller */
-    .journal-viewport {
+    .deck-wrap {
       position: relative;
-      overflow: hidden;
-      margin: 0 -1rem; /* allow edge fades to sit flush */
+      height: 560px;               /* fits card height */
+      margin-top: 1rem;
+      display: grid;
+      place-items: center;
+    }
+    .deck {
+      position: relative;
+      width: min(820px, 92vw);
+      height: 520px;
+      perspective: 1200px;
     }
 
-    .journal-entries {
-      display: flex;
-      gap: 2rem;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding: 1rem 1rem 2rem;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-    }
-    /* hide scrollbars (WebKit & Firefox) */
-    .journal-entries::-webkit-scrollbar { height: 10px; }
-    .journal-entries::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 6px; }
-    .journal-entries { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.15) transparent; }
-
-    .journal-entry {
-      flex: 0 0 70%;
-      max-width: 70%;
-      background:#F5F1E8;
-      border-radius:20px;
-      padding:3rem;
-      transition:.3s;
-      scroll-snap-align: start;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    }
-    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.15); }
-
-    .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
-    .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
-    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; white-space:nowrap; }
-    .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
-
-    /* Edge fades */
-    .journal-viewport::before,
-    .journal-viewport::after {
-      content: "";
+    .card {
       position: absolute;
-      top: 0; bottom: 0;
-      width: 40px;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .journal-viewport::before {
-      left: 0;
-      background: linear-gradient(to right, white, rgba(255,255,255,0));
-    }
-    .journal-viewport::after {
-      right: 0;
-      background: linear-gradient(to left, white, rgba(255,255,255,0));
-    }
-
-    /* Nav arrows */
-    .journal-nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 3;
+      inset: 0;
+      background: #F5F1E8;
+      border-radius: 20px;
+      padding: 2.2rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+      user-select: none;
+      touch-action: none;
+      transform-origin: 50% 120%;
+      transition: transform 260ms ease, opacity 260ms ease, box-shadow 260ms ease;
       display: flex;
-      gap: 1rem;
-      width: calc(100% - 2rem);
-      left: 1rem;
-      right: 1rem;
-      pointer-events: none;
+      flex-direction: column;
     }
-    .journal-btn {
-      pointer-events: auto;
-      background: rgba(138,154,142,0.9);
-      color: white;
-      border: none;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      font-size: 22px;
-      display: grid; place-items: center;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(0,0,0,.15);
-      transition: transform .2s ease, background .2s ease;
-    }
-    .journal-btn:hover { transform: scale(1.06); background: rgba(107,122,111,0.95); }
-    .journal-btn:active { transform: scale(0.98); }
-    .journal-btn.prev { margin-right: auto; }
-    .journal-btn.next { margin-left: auto; }
+    .card h3 { font-size: 1.8rem; margin-bottom: .4rem; color:#2c2c2c; }
+    .card time { color:#8A9A8E; font-weight: 500; margin-bottom: 1rem; }
+    .card .content { color:#2c2c2c; line-height: 1.8; font-size: 1.05rem; font-style: italic; overflow: auto; }
+    .card .content::-webkit-scrollbar { width: 8px; }
+    .card .content::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 6px; }
 
-    /* Placeholder */
-    .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
+    /* stacked look for the next cards */
+    .card:nth-child(1) { transform: translateY(0) scale(1) rotate(0deg); z-index: 4; }
+    .card:nth-child(2) { transform: translateY(14px) scale(0.985) rotate(-1deg); z-index: 3; opacity: .95; }
+    .card:nth-child(3) { transform: translateY(28px) scale(0.97) rotate(1deg); z-index: 2; opacity: .9; }
+    .card:nth-child(4) { transform: translateY(42px) scale(0.955) rotate(-1deg); z-index: 1; opacity: .85; }
+    .card:nth-child(n+5) { opacity: 0; pointer-events: none; }
+
+    .hint {
+      position: absolute; top: -34px; left: 0; right: 0;
+      text-align: center; color: #8A9A8E; font-size: .95rem;
+    }
 
     /* Lightbox */
     .lightbox { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.95); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:.3s; }
@@ -152,6 +106,7 @@
     .lightbox-content { position:relative; max-width:95vw; max-height:95vh; display:flex; flex-direction:column; align-items:center; }
     .lightbox-image { max-width:100%; max-height:85vh; object-fit:contain; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
     .lightbox-caption { color:white; font-size:1rem; font-weight:500; margin-top:1.5rem; text-align:center; background:rgba(255,255,255,0.1); padding:.75rem 1.5rem; border-radius:25px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+
     .lightbox-close { position:absolute; top:2rem; right:2rem; background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:50px; height:50px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
     .lightbox-close:hover { background:rgba(255,255,255,0.3); transform:scale(1.1); }
     .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.2); border:none; color:white; font-size:2rem; width:60px; height:60px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.3s; }
@@ -166,13 +121,6 @@
     @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
     @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.8;} }
 
-    /* Responsive */
-    @media (max-width:1200px) {
-      .journal-entry { flex-basis: 80%; max-width: 80%; }
-    }
-    @media (max-width:900px) {
-      .journal-entry { flex-basis: 90%; max-width: 90%; }
-    }
     @media (max-width:1024px) {
       body{margin-left:0;}
       .sidebar{transform:translateX(-100%);transition:.3s;}
@@ -189,6 +137,8 @@
       .gallery-grid{grid-template-columns:1fr;}
       .section-title h2{font-size:2rem;}
       .sidebar{width:100%;}
+      .deck { height: 520px; }
+      .deck-wrap { height: 560px; }
     }
     html { scroll-behavior:smooth; }
   </style>
@@ -235,23 +185,16 @@
     </div>
   </section>
 
-  <!-- Journal -->
+  <!-- Journal (Stack) -->
   <section class="journal" id="journal">
     <div class="journal-container">
-      <div class="section-title">
-        <h2>Journal</h2>
-        <p>Reflections on moments, meaning, and memories.</p>
-      </div>
+      <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and memories.</p></div>
 
-      <div class="journal-viewport">
-        <!-- nav arrows -->
-        <div class="journal-nav">
-          <button class="journal-btn prev" type="button" aria-label="Previous">&lsaquo;</button>
-          <button class="journal-btn next" type="button" aria-label="Next">&rsaquo;</button>
+      <div class="deck-wrap">
+        <div class="hint">Swipe left or right</div>
+        <div class="deck" id="journal-deck">
+          <!-- Cards injected here -->
         </div>
-
-        <!-- horizontal scroller -->
-        <div class="journal-entries" id="journal-entries"></div>
       </div>
     </div>
   </section>
@@ -350,7 +293,7 @@
       });
     });
 
-    // ===== Intersection Observer (fade-in) =====
+    // ===== Intersection Observer (fade-in for gallery items) =====
     const observer=new IntersectionObserver(entries=>{
       entries.forEach(entry=>{
         if(entry.isIntersecting){
@@ -369,7 +312,6 @@
         const items = await res.json();
         if(!Array.isArray(items) || items.length===0) throw new Error('No items');
 
-        // No filename fallback.
         galleryImages = items.map(x=>{
           const src = x.image_url || x.src || x.url || '';
           return {
@@ -412,92 +354,141 @@
           `)
           .join('');
       }
-
-      // Animate in
       document.querySelectorAll('.gallery-item').forEach(item=> observer.observe(item));
     }
 
-    // Horizontal journal helpers
-    function initJournalScroller(scroller) {
-      const prev = document.querySelector('.journal-btn.prev');
-      const next = document.querySelector('.journal-btn.next');
+    // ===== Journal: build cards & swipe deck =====
+    function renderJournalDeck(entries){
+      const deck = document.getElementById('journal-deck');
+      deck.innerHTML = entries.map(e=>{
+        const date = e.entry_date || e.date || e.created_at || '';
+        const title = e.title || 'Untitled';
+        const content = (e.content || e.body || '').replace(/\n/g,'<br>');
+        return `
+          <article class="card">
+            <header>
+              <h3>${escapeHtml(title)}</h3>
+              <time>${escapeHtml(fmtDate(String(date)))}</time>
+            </header>
+            <div class="content"><p>${content}</p></div>
+          </article>
+        `;
+      }).join('');
 
-      function cardWidth() {
-        const first = scroller.querySelector('.journal-entry');
-        return first ? first.getBoundingClientRect().width + 32 /*gap*/ : scroller.clientWidth * 0.8;
+      // Newest-first is assumed from your function; if needed:
+      // [...entries].sort((a,b)=>new Date(b.entry_date||b.created_at)-new Date(a.entry_date||a.created_at))
+
+      initSwipeDeck(deck);
+    }
+
+    function initSwipeDeck(deck){
+      const SWIPE_THRESHOLD = 120;  // px
+      const ROTATE_FACTOR = 12;     // degrees max
+
+      Array.from(deck.children).forEach(card => makeSwipeable(card));
+
+      function makeSwipeable(card){
+        let startX=0, startY=0, dx=0, dy=0, isDown=false;
+        let startTime=0;
+
+        const onPointerDown = (e)=>{
+          isDown = true;
+          startTime = Date.now();
+          const p = pointer(e);
+          startX = p.x; startY = p.y;
+          dx = dy = 0;
+          card.style.transition = 'none';
+          card.setPointerCapture?.(e.pointerId);
+        };
+
+        const onPointerMove = (e)=>{
+          if(!isDown) return;
+          const p = pointer(e);
+          dx = p.x - startX;
+          dy = p.y - startY * 0.3; // dampen vertical
+          const rot = Math.max(-ROTATE_FACTOR, Math.min(ROTATE_FACTOR, dx/10));
+          card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+          card.style.boxShadow = `0 30px 60px rgba(0,0,0,${0.12 + Math.min(Math.abs(dx)/600, 0.18)})`;
+        };
+
+        const onPointerUp = ()=>{
+          if(!isDown) return;
+          isDown = false;
+
+          const dt = Date.now() - startTime;
+          const velocityX = dx / Math.max(dt,1); // px/ms
+
+          const shouldSwipe = Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(velocityX) > 0.6;
+
+          if(shouldSwipe){
+            // fling out
+            const dir = dx > 0 ? 1 : -1;
+            card.style.transition = 'transform 280ms ease, opacity 280ms ease';
+            card.style.transform = `translate(${dir*window.innerWidth}px, ${dy}px) rotate(${dir*18}deg)`;
+            card.style.opacity = '0';
+
+            // recycle to back
+            setTimeout(()=>{
+              card.style.transition = 'none';
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(40px) scale(0.955) rotate(-1deg)'; // place at back baseline
+              deck.appendChild(card); // move to end
+              // force reflow to apply new stack transforms
+              requestAnimationFrame(()=> layoutStack());
+            }, 280);
+          }else{
+            // snap back
+            card.style.transition = 'transform 220ms ease, box-shadow 220ms ease';
+            card.style.transform = '';
+            card.style.boxShadow = '';
+          }
+        };
+
+        // Support mouse/touch/pointer
+        card.addEventListener('pointerdown', onPointerDown);
+        card.addEventListener('pointermove', onPointerMove);
+        card.addEventListener('pointerup', onPointerUp);
+        card.addEventListener('pointercancel', onPointerUp);
+        card.addEventListener('pointerleave', onPointerUp);
+
+        function pointer(e){
+          if(e.touches && e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY};
+          return {x:e.clientX, y:e.clientY};
+        }
       }
 
-      prev.addEventListener('click', ()=> scroller.scrollBy({ left: -cardWidth(), behavior: 'smooth' }));
-      next.addEventListener('click', ()=> scroller.scrollBy({ left:  cardWidth(), behavior: 'smooth' }));
+      // Re‑apply stacked transforms to first few cards after reorder
+      function layoutStack(){
+        const cards = Array.from(deck.children);
+        cards.forEach((c,i)=>{
+          c.style.transition = 'transform 260ms ease, opacity 260ms ease, box-shadow 260ms ease';
+          if(i===0){ c.style.transform='translateY(0) scale(1) rotate(0deg)'; c.style.zIndex=4; c.style.opacity='1'; }
+          else if(i===1){ c.style.transform='translateY(14px) scale(0.985) rotate(-1deg)'; c.style.zIndex=3; c.style.opacity='.95'; }
+          else if(i===2){ c.style.transform='translateY(28px) scale(0.97) rotate(1deg)'; c.style.zIndex=2; c.style.opacity='.9'; }
+          else if(i===3){ c.style.transform='translateY(42px) scale(0.955) rotate(-1deg)'; c.style.zIndex=1; c.style.opacity='.85'; }
+          else { c.style.opacity='0'; c.style.pointerEvents='none'; }
+        });
+      }
 
-      // Mouse wheel horizontal (shift not required)
-      scroller.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-          scroller.scrollLeft += e.deltaY;
-          e.preventDefault();
-        }
-      }, { passive: false });
-
-      // Click & drag / touch drag
-      let isDown=false, startX=0, startScroll=0;
-      const start = (x) => { isDown=true; startX=x; startScroll=scroller.scrollLeft; scroller.classList.add('dragging'); };
-      const move  = (x) => { if(!isDown) return; const dx=x-startX; scroller.scrollLeft = startScroll - dx; };
-      const end   = () => { isDown=false; scroller.classList.remove('dragging'); };
-
-      scroller.addEventListener('mousedown', (e)=>start(e.pageX));
-      window.addEventListener('mousemove', (e)=>move(e.pageX));
-      window.addEventListener('mouseup', end);
-
-      scroller.addEventListener('touchstart', (e)=>start(e.touches[0].pageX), {passive:true});
-      window.addEventListener('touchmove', (e)=>move(e.touches[0].pageX), {passive:true});
-      window.addEventListener('touchend', end);
+      layoutStack();
     }
 
     async function fetchJournal(){
-      const scroller = document.getElementById('journal-entries');
+      const deck = document.getElementById('journal-deck');
       try{
         const res = await fetch('/.netlify/functions/journal', { cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const entries = await res.json();
         if(!Array.isArray(entries) || entries.length===0) throw new Error('No entries');
 
-        scroller.innerHTML = entries.map(entry=>{
-          const date = entry.entry_date || entry.date || entry.created_at || '';
-          const title = entry.title || 'Untitled';
-          const content = (entry.content || entry.body || '').replace(/\n/g,'<br>');
-          return `
-            <article class="journal-entry" style="opacity:0; transform:translateY(30px); transition:all .6s ease">
-              <div class="entry-header">
-                <h3>${escapeHtml(title)}</h3>
-                <time>${escapeHtml(fmtDate(String(date)))}</time>
-              </div>
-              <div class="entry-content">
-                <p>${content}</p>
-              </div>
-            </article>
-          `;
-        }).join('');
-
-        // Fade-in animation
-        scroller.querySelectorAll('.journal-entry').forEach(item=> observer.observe(item));
-
-        // Set up scroller UX (arrows, wheel, drag)
-        initJournalScroller(scroller);
-
+        // Build deck (newest first is typical from your endpoint)
+        renderJournalDeck(entries);
       }catch(err){
         console.warn('Journal fetch failed, using fallback:', err);
-        scroller.innerHTML = `
-          <article class="journal-entry">
-            <div class="entry-header">
-              <h3>Moment</h3>
-              <time>May 25, 2025</time>
-            </div>
-            <div class="entry-content">
-              <p>Fallback entry shown when the function is unavailable.</p>
-            </div>
-          </article>
-        `;
-        initJournalScroller(scroller);
+        renderJournalDeck([
+          { title:'Moment', entry_date:'2025-05-25', content:'Sometimes the image is about feeling, not pixels.' },
+          { title:'Wander', entry_date:'2025-06-10', content:'Movement invites meaning.' }
+        ]);
       }
     }
 
