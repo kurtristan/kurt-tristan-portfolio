@@ -2,16 +2,9 @@
 // REST API for your journal.
 // Methods:
 //   GET    /.netlify/functions/journal
-//   POST   /.netlify/functions/journal     { title, date, content }
-//   PUT    /.netlify/functions/journal     { id, title?, date?, content? }
+//   POST   /.netlify/functions/journal     { title, entry_date, content }
+//   PUT    /.netlify/functions/journal     { id, title?, entry_date?, content? }
 //   DELETE /.netlify/functions/journal     { id }
-//
-// Netlify env vars required (Site settings → Environment):
-//   SUPAHUB_URL or SUPABASE_URL
-//   SUPAHUB_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY
-// Optional:
-//   SUPAHUB_JOURNAL_TABLE or SUPABASE_JOURNAL_TABLE (default "journal")
-// Also set: NODE_VERSION=18 (or 20) so `fetch` is available.
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -65,7 +58,6 @@ exports.handler = async (event) => {
       // GET: list journal entries (newest first)
       // -----------------------
       case 'GET': {
-        // Order by created_at desc, then id desc as a stable tiebreaker
         const url = rest(`/${encodeURIComponent(TABLE)}?select=*&order=created_at.desc.nullslast&order=id.desc`);
         const res = await fetch(url, { headers: headersJSON(KEY) });
         if (!res.ok) {
@@ -74,12 +66,13 @@ exports.handler = async (event) => {
           return json(502, { error: 'Failed to list journal', detail: t });
         }
         const rows = await res.json();
-        // Normalize field names the frontend expects: title, date, content
+
         const out = rows.map(r => ({
           id: r.id,
           title: r.title || 'Untitled',
-          date: r.date || r.created_at || new Date().toISOString(),
-          content: r.content || r.body || '',
+          entry_date: r.entry_date || r.created_at || new Date().toISOString(),
+          date: r.entry_date || r.created_at || new Date().toISOString(), // legacy alias
+          content: r.content || '',
           created_at: r.created_at,
           updated_at: r.updated_at,
         }));
@@ -88,19 +81,18 @@ exports.handler = async (event) => {
 
       // --------------------------------------
       // POST: add an entry
-      // body: { title, date, content }
+      // body: { title, entry_date, content }
       // --------------------------------------
       case 'POST': {
         const body = JSON.parse(event.body || '{}');
-        let { title, date, content } = body;
+        let { title, entry_date, date, content } = body;
 
-        // Sanity defaults
         title = (title || '').toString().trim() || 'Untitled';
-        // Allow either ISO or display strings — store as given
-        date = (date || '').toString().trim() || new Date().toISOString();
+        entry_date = (entry_date || date || '').toString().trim() || new Date().toISOString().slice(0,10);
         content = (content || '').toString();
 
-        const payload = { title, date, content };
+        const payload = { title, entry_date, content };
+
         const insRes = await fetch(rest(`/${encodeURIComponent(TABLE)}`), {
           method: 'POST',
           headers: { ...headersJSON(KEY), Prefer: 'return=representation' },
@@ -115,7 +107,8 @@ exports.handler = async (event) => {
         return json(200, {
           id: row.id,
           title: row.title,
-          date: row.date || row.created_at,
+          entry_date: row.entry_date || row.created_at,
+          date: row.entry_date || row.created_at, // legacy alias
           content: row.content || '',
           created_at: row.created_at,
           updated_at: row.updated_at,
@@ -124,7 +117,7 @@ exports.handler = async (event) => {
 
       // --------------------------------------
       // PUT: update an entry
-      // body: { id, title?, date?, content? }
+      // body: { id, title?, entry_date?, content? }
       // --------------------------------------
       case 'PUT': {
         const body = JSON.parse(event.body || '{}');
@@ -133,7 +126,8 @@ exports.handler = async (event) => {
 
         const fields = {};
         if (typeof body.title === 'string') fields.title = body.title;
-        if (typeof body.date === 'string') fields.date = body.date;
+        if (typeof body.entry_date === 'string') fields.entry_date = body.entry_date;
+        else if (typeof body.date === 'string') fields.entry_date = body.date; // map legacy date
         if (typeof body.content === 'string') fields.content = body.content;
 
         if (Object.keys(fields).length === 0) {
@@ -157,7 +151,8 @@ exports.handler = async (event) => {
         return json(200, {
           id: row.id,
           title: row.title,
-          date: row.date || row.created_at,
+          entry_date: row.entry_date || row.created_at,
+          date: row.entry_date || row.created_at, // legacy alias
           content: row.content || '',
           created_at: row.created_at,
           updated_at: row.updated_at,
@@ -166,7 +161,6 @@ exports.handler = async (event) => {
 
       // --------------------------------------
       // DELETE: remove an entry
-      // body: { id }
       // --------------------------------------
       case 'DELETE': {
         const body = JSON.parse(event.body || '{}');
