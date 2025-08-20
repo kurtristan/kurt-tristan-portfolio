@@ -52,14 +52,96 @@
 
     /* Journal */
     .journal { padding:8rem 0; background:white; }
-    .journal-container { max-width:800px; margin:0 auto; padding:0 2rem; }
-    .journal-entries { display:flex; flex-direction:column; gap:3rem; }
-    .journal-entry { background:#F5F1E8; border-radius:20px; padding:3rem; transition:.3s; }
-    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.1); }
+    .journal-container { max-width:1200px; margin:0 auto; padding:0 2rem; position: relative; }
+
+    /* Horizontal scroller */
+    .journal-viewport {
+      position: relative;
+      overflow: hidden;
+      margin: 0 -1rem; /* allow edge fades to sit flush */
+    }
+
+    .journal-entries {
+      display: flex;
+      gap: 2rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 1rem 1rem 2rem;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* hide scrollbars (WebKit & Firefox) */
+    .journal-entries::-webkit-scrollbar { height: 10px; }
+    .journal-entries::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 6px; }
+    .journal-entries { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.15) transparent; }
+
+    .journal-entry {
+      flex: 0 0 70%;
+      max-width: 70%;
+      background:#F5F1E8;
+      border-radius:20px;
+      padding:3rem;
+      transition:.3s;
+      scroll-snap-align: start;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    .journal-entry:hover { transform:translateY(-5px); box-shadow:0 15px 30px rgba(138,154,142,0.15); }
+
     .entry-header { margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid rgba(138,154,142,0.2); }
     .entry-header h3 { font-size:2rem; font-weight:700; color:#2c2c2c; margin-bottom:0.5rem; }
-    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; }
+    .entry-header time { font-size:1rem; color:#8A9A8E; font-weight:500; white-space:nowrap; }
     .entry-content p { font-size:1.1rem; line-height:1.8; color:#2c2c2c; font-style:italic; }
+
+    /* Edge fades */
+    .journal-viewport::before,
+    .journal-viewport::after {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 40px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .journal-viewport::before {
+      left: 0;
+      background: linear-gradient(to right, white, rgba(255,255,255,0));
+    }
+    .journal-viewport::after {
+      right: 0;
+      background: linear-gradient(to left, white, rgba(255,255,255,0));
+    }
+
+    /* Nav arrows */
+    .journal-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      display: flex;
+      gap: 1rem;
+      width: calc(100% - 2rem);
+      left: 1rem;
+      right: 1rem;
+      pointer-events: none;
+    }
+    .journal-btn {
+      pointer-events: auto;
+      background: rgba(138,154,142,0.9);
+      color: white;
+      border: none;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      font-size: 22px;
+      display: grid; place-items: center;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,.15);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .journal-btn:hover { transform: scale(1.06); background: rgba(107,122,111,0.95); }
+    .journal-btn:active { transform: scale(0.98); }
+    .journal-btn.prev { margin-right: auto; }
+    .journal-btn.next { margin-left: auto; }
 
     /* Placeholder */
     .placeholder { background: linear-gradient(45deg,#f0f0f0,#e0e0e0); display:flex; align-items:center; justify-content:center; color:#666; font-size:1.1rem; font-weight:500; }
@@ -84,6 +166,13 @@
     @keyframes fadeInUp { from {opacity:0; transform:translateY(30px);} to {opacity:1; transform:translateY(0);} }
     @keyframes heroFadeIn { from {opacity:0;} to {opacity:0.8;} }
 
+    /* Responsive */
+    @media (max-width:1200px) {
+      .journal-entry { flex-basis: 80%; max-width: 80%; }
+    }
+    @media (max-width:900px) {
+      .journal-entry { flex-basis: 90%; max-width: 90%; }
+    }
     @media (max-width:1024px) {
       body{margin-left:0;}
       .sidebar{transform:translateX(-100%);transition:.3s;}
@@ -149,8 +238,21 @@
   <!-- Journal -->
   <section class="journal" id="journal">
     <div class="journal-container">
-      <div class="section-title"><h2>Journal</h2><p>Reflections on moments, meaning, and memories.</p></div>
-      <div class="journal-entries" id="journal-entries"></div>
+      <div class="section-title">
+        <h2>Journal</h2>
+        <p>Reflections on moments, meaning, and memories.</p>
+      </div>
+
+      <div class="journal-viewport">
+        <!-- nav arrows -->
+        <div class="journal-nav">
+          <button class="journal-btn prev" type="button" aria-label="Previous">&lsaquo;</button>
+          <button class="journal-btn next" type="button" aria-label="Next">&rsaquo;</button>
+        </div>
+
+        <!-- horizontal scroller -->
+        <div class="journal-entries" id="journal-entries"></div>
+      </div>
     </div>
   </section>
 
@@ -165,7 +267,6 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer>
     <div class="footer-content">
       <p>&copy; 2025 Kurt Tristan. All rights reserved. | Capturing moments, creating memories.</p>
@@ -316,15 +417,51 @@
       document.querySelectorAll('.gallery-item').forEach(item=> observer.observe(item));
     }
 
+    // Horizontal journal helpers
+    function initJournalScroller(scroller) {
+      const prev = document.querySelector('.journal-btn.prev');
+      const next = document.querySelector('.journal-btn.next');
+
+      function cardWidth() {
+        const first = scroller.querySelector('.journal-entry');
+        return first ? first.getBoundingClientRect().width + 32 /*gap*/ : scroller.clientWidth * 0.8;
+      }
+
+      prev.addEventListener('click', ()=> scroller.scrollBy({ left: -cardWidth(), behavior: 'smooth' }));
+      next.addEventListener('click', ()=> scroller.scrollBy({ left:  cardWidth(), behavior: 'smooth' }));
+
+      // Mouse wheel horizontal (shift not required)
+      scroller.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          scroller.scrollLeft += e.deltaY;
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // Click & drag / touch drag
+      let isDown=false, startX=0, startScroll=0;
+      const start = (x) => { isDown=true; startX=x; startScroll=scroller.scrollLeft; scroller.classList.add('dragging'); };
+      const move  = (x) => { if(!isDown) return; const dx=x-startX; scroller.scrollLeft = startScroll - dx; };
+      const end   = () => { isDown=false; scroller.classList.remove('dragging'); };
+
+      scroller.addEventListener('mousedown', (e)=>start(e.pageX));
+      window.addEventListener('mousemove', (e)=>move(e.pageX));
+      window.addEventListener('mouseup', end);
+
+      scroller.addEventListener('touchstart', (e)=>start(e.touches[0].pageX), {passive:true});
+      window.addEventListener('touchmove', (e)=>move(e.touches[0].pageX), {passive:true});
+      window.addEventListener('touchend', end);
+    }
+
     async function fetchJournal(){
-      const wrap = document.getElementById('journal-entries');
+      const scroller = document.getElementById('journal-entries');
       try{
         const res = await fetch('/.netlify/functions/journal', { cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const entries = await res.json();
         if(!Array.isArray(entries) || entries.length===0) throw new Error('No entries');
 
-        wrap.innerHTML = entries.map(entry=>{
+        scroller.innerHTML = entries.map(entry=>{
           const date = entry.entry_date || entry.date || entry.created_at || '';
           const title = entry.title || 'Untitled';
           const content = (entry.content || entry.body || '').replace(/\n/g,'<br>');
@@ -340,27 +477,31 @@
             </article>
           `;
         }).join('');
+
+        // Fade-in animation
+        scroller.querySelectorAll('.journal-entry').forEach(item=> observer.observe(item));
+
+        // Set up scroller UX (arrows, wheel, drag)
+        initJournalScroller(scroller);
+
       }catch(err){
         console.warn('Journal fetch failed, using fallback:', err);
-        wrap.innerHTML = `
-          <article class="journal-entry" style="opacity:0; transform:translateY(30px); transition:all .6s ease">
+        scroller.innerHTML = `
+          <article class="journal-entry">
             <div class="entry-header">
               <h3>Moment</h3>
               <time>May 25, 2025</time>
             </div>
             <div class="entry-content">
-              <p>The problem isn't just capturing the image, it's capturing the emotions I held while also being in that moment.</p>
+              <p>Fallback entry shown when the function is unavailable.</p>
             </div>
           </article>
         `;
+        initJournalScroller(scroller);
       }
-
-      // Animate in
-      document.querySelectorAll('.journal-entry').forEach(item=> observer.observe(item));
     }
 
     // ===== Kickoff =====
-    function toggleSidebar(){ document.querySelector('.sidebar').classList.toggle('open'); }
     fetchGallery();
     fetchJournal();
   </script>
