@@ -23,15 +23,15 @@
     .tab-content { display: none; background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 20px rgba(0,0,0,.1); }
     .tab-content.active { display: block; }
 
-    .form-group { margin-bottom: 1.5rem; }
-    .form-group label { display: block; margin-bottom: .5rem; font-weight: 600; color: #2c2c2c; }
-    .form-group input, .form-group textarea { width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; transition: border-color .3s; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: .4rem; font-weight: 600; color: #2c2c2c; }
+    .form-group input, .form-group textarea { width: 100%; padding: .8rem; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; transition: border-color .3s; }
     .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #8A9A8E; }
     .form-group textarea { resize: vertical; min-height: 120px; }
 
-    .btn { padding: 1rem 2rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all .3s; text-decoration: none; display: inline-block; }
+    .btn { padding: .65rem 1rem; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all .2s; text-decoration: none; display: inline-block; }
     .btn-primary { background: #8A9A8E; color: white; }
-    .btn-primary:hover { background: #6B7A6F; transform: translateY(-2px); }
+    .btn-primary:hover { background: #6B7A6F; transform: translateY(-1px); }
     .btn-secondary { background: #F5F1E8; color: #2c2c2c; border: 2px solid #ddd; }
     .btn-secondary:hover { border-color: #8A9A8E; }
     .btn-danger { background: #dc3545; color: white; }
@@ -42,10 +42,11 @@
     .gallery-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; }
 
     .journal-entries { margin-bottom: 2rem; display: grid; gap: 1rem; }
-    .journal-card { background: #F5F1E8; border-radius: 10px; padding: 1.5rem; border: 2px solid #ddd; }
-    .journal-card h3 { margin-bottom: .5rem; color: #2c2c2c; }
-    .journal-card .date { color: #8A9A8E; font-weight: 500; margin-bottom: 1rem; }
+    .journal-card { background: #F5F1E8; border-radius: 10px; padding: 1.25rem; border: 2px solid #ddd; }
+    .journal-card h3 { margin-bottom: .4rem; color: #2c2c2c; }
+    .journal-card .date { color: #8A9A8E; font-weight: 500; margin-bottom: .6rem; }
     .journal-card .content { color: #666; line-height: 1.6; white-space: pre-wrap; }
+    .journal-card .actions { margin-top: .75rem; display: flex; gap: .5rem; }
 
     .upload-area { border: 3px dashed #8A9A8E; border-radius: 10px; padding: 3rem; text-align: center; margin-bottom: 1rem; transition: all .3s; cursor: pointer; }
     .upload-area:hover { background: rgba(138,154,142,.1); }
@@ -149,6 +150,9 @@
     let journalData = [];
     let droppedFile = null;
 
+    // Which entries are currently being edited (inline)
+    const editingIds = new Set();
+
     // ---------- Utils ----------
     const showMessage = (containerId, message, type) => {
       const box = document.getElementById(containerId);
@@ -167,12 +171,6 @@
         btn.disabled = false;
         btn.innerHTML = btn.dataset.originalText || 'Done';
       }
-    };
-
-    const escapeText = (t) => {
-      const div = document.createElement('div');
-      div.textContent = String(t == null ? '' : t);
-      return div.innerHTML;
     };
 
     const fileToDataURL = (file) =>
@@ -195,7 +193,7 @@
       if (tabName === 'journal') loadJournal();
     }
 
-    // ---------- Drag & Drop ----------
+    // ---------- Drag & Drop (Gallery) ----------
     (function setupDnD() {
       const upload = document.getElementById('photo-upload');
       const input = document.getElementById('photo-input');
@@ -212,13 +210,13 @@
             return;
           }
           droppedFile = file;
-          showMessage('gallery-messages', `Selected: ${escapeText(file.name)}`, 'success');
+          showMessage('gallery-messages', `Selected: ${file.name}`, 'success');
         }
       });
       input.addEventListener('change', () => {
         if (input.files && input.files[0]) {
           droppedFile = input.files[0];
-          showMessage('gallery-messages', `Selected: ${escapeText(droppedFile.name)}`, 'success');
+          showMessage('gallery-messages', `Selected: ${droppedFile.name}`, 'success');
         }
       });
     })();
@@ -229,7 +227,6 @@
       try {
         let res = await fetch(`${API_BASE}/gallery`);
         if (!res.ok) {
-          // Fallback: if your function lists via POST {action:list}
           res = await fetch(`${API_BASE}/gallery`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -307,7 +304,6 @@
 
       setLoading('upload-btn', true);
       try {
-        // Backend expects JSON with { image, filename, location }
         const dataUrl = await fileToDataURL(file);
         const payload = { image: dataUrl, filename: file.name, location: loc };
 
@@ -332,7 +328,6 @@
       }
     }
 
-    // PUT /.netlify/functions/gallery  with { id, location }
     async function editLocation(item) {
       const current = item.location || '';
       const next = prompt('Update location:', current);
@@ -355,7 +350,6 @@
       }
     }
 
-    // DELETE /.netlify/functions/gallery  with { id }
     async function removePhoto(item) {
       if (!confirm('Remove this photo?')) return;
       try {
@@ -379,7 +373,6 @@
       try {
         let res = await fetch(`${API_BASE}/journal`);
         if (!res.ok) {
-          // If your journal function lists via POST {action:list}
           res = await fetch(`${API_BASE}/journal`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -396,6 +389,13 @@
       }
     }
 
+    const toYMD = (d) => {
+      if (!d) return '';
+      // handle timestamp or YYYY-MM-DD
+      try { return (d.length > 10 ? new Date(d) : new Date(d+'T00:00:00')).toISOString().slice(0,10); }
+      catch { return (''+d).slice(0,10); }
+    };
+
     function renderJournal() {
       const box = document.getElementById('current-journal');
       box.innerHTML = '';
@@ -403,27 +403,133 @@
         box.innerHTML = '<p>No journal entries yet.</p>';
         return;
       }
+
       journalData.forEach(entry => {
+        const editing = editingIds.has(entry.id);
         const card = document.createElement('div');
         card.className = 'journal-card';
 
-        const h3 = document.createElement('h3');
-        h3.textContent = entry.title || 'Untitled';
+        if (!editing) {
+          // ---- View mode
+          const h3 = document.createElement('h3');
+          h3.textContent = entry.title || 'Untitled';
 
-        const dateEl = document.createElement('div');
-        dateEl.className = 'date';
-        // Prefer DB column; fall back to old field if present
-        dateEl.textContent = entry.entry_date || entry.date || '';
+          const dateEl = document.createElement('div');
+          dateEl.className = 'date';
+          dateEl.textContent = entry.entry_date || entry.date || '';
 
-        const contentEl = document.createElement('div');
-        contentEl.className = 'content';
-        contentEl.textContent = entry.content || '';
+          const contentEl = document.createElement('div');
+          contentEl.className = 'content';
+          contentEl.textContent = entry.content || '';
 
-        card.appendChild(h3);
-        card.appendChild(dateEl);
-        card.appendChild(contentEl);
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn btn-secondary';
+          editBtn.textContent = 'Edit';
+          editBtn.onclick = () => { editingIds.add(entry.id); renderJournal(); };
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-danger';
+          delBtn.textContent = 'Delete';
+          delBtn.onclick = () => deleteJournalEntry(entry.id);
+
+          actions.appendChild(editBtn);
+          actions.appendChild(delBtn);
+
+          card.appendChild(h3);
+          card.appendChild(dateEl);
+          card.appendChild(contentEl);
+          card.appendChild(actions);
+        } else {
+          // ---- Edit mode (inline)
+          const titleGroup = document.createElement('div');
+          titleGroup.className = 'form-group';
+          const titleLabel = document.createElement('label');
+          titleLabel.textContent = 'Title';
+          const titleInput = document.createElement('input');
+          titleInput.type = 'text';
+          titleInput.value = entry.title || '';
+          titleInput.id = `edit-title-${entry.id}`;
+          titleGroup.appendChild(titleLabel);
+          titleGroup.appendChild(titleInput);
+
+          const dateGroup = document.createElement('div');
+          dateGroup.className = 'form-group';
+          const dateLabel = document.createElement('label');
+          dateLabel.textContent = 'Date';
+          const dateInput = document.createElement('input');
+          dateInput.type = 'date';
+          dateInput.value = toYMD(entry.entry_date || entry.date || '');
+          dateInput.id = `edit-date-${entry.id}`;
+          dateGroup.appendChild(dateLabel);
+          dateGroup.appendChild(dateInput);
+
+          const contentGroup = document.createElement('div');
+          contentGroup.className = 'form-group';
+          const contentLabel = document.createElement('label');
+          contentLabel.textContent = 'Content';
+          const contentInput = document.createElement('textarea');
+          contentInput.rows = 8;
+          contentInput.value = entry.content || '';
+          contentInput.id = `edit-content-${entry.id}`;
+          contentGroup.appendChild(contentLabel);
+          contentGroup.appendChild(contentInput);
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'btn btn-primary';
+          saveBtn.textContent = 'Save';
+          saveBtn.onclick = () => saveInlineEdit(entry.id);
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn btn-secondary';
+          cancelBtn.textContent = 'Cancel';
+          cancelBtn.onclick = () => { editingIds.delete(entry.id); renderJournal(); };
+
+          actions.appendChild(saveBtn);
+          actions.appendChild(cancelBtn);
+
+          card.appendChild(titleGroup);
+          card.appendChild(dateGroup);
+          card.appendChild(contentGroup);
+          card.appendChild(actions);
+        }
+
         box.appendChild(card);
       });
+    }
+
+    async function saveInlineEdit(id) {
+      const title = document.getElementById(`edit-title-${id}`).value.trim();
+      const entry_date = document.getElementById(`edit-date-${id}`).value;
+      const content = document.getElementById(`edit-content-${id}`).value;
+
+      const fields = {};
+      if (title) fields.title = title;
+      if (entry_date) fields.entry_date = entry_date;
+      if (typeof content === 'string') fields.content = content;
+
+      try {
+        const res = await fetch(`${API_BASE}/journal`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ...fields })
+        });
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status} ${t}`);
+        }
+        showMessage('journal-messages', 'Entry updated.', 'success');
+        editingIds.delete(id);
+        await loadJournal();
+      } catch (err) {
+        console.error(err);
+        showMessage('journal-messages', 'Failed to update entry.', 'error');
+      }
     }
 
     async function addJournalEntry() {
@@ -441,7 +547,7 @@
         const res = await fetch(`${API_BASE}/journal`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content, entry_date: date }) // <-- fixed mapping
+          body: JSON.stringify({ title, content, entry_date: date })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -456,6 +562,31 @@
         showMessage('journal-messages', 'Failed to add entry.', 'error');
       } finally {
         setLoading('journal-btn', false);
+      }
+    }
+
+    async function deleteJournalEntry(id) {
+      if (!id) {
+        showMessage('journal-messages', 'Missing entry id.', 'error');
+        return;
+      }
+      if (!confirm('Delete this journal entry? This cannot be undone.')) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/journal`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status} ${text}`);
+        }
+        showMessage('journal-messages', 'Entry deleted.', 'success');
+        await loadJournal();
+      } catch (err) {
+        console.error(err);
+        showMessage('journal-messages', 'Failed to delete entry.', 'error');
       }
     }
 
