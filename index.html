@@ -82,7 +82,8 @@
       display: flex;
       flex-direction: column;
     }
-    .card h3 { font-size: 1.8rem; margin-bottom: .4rem; color:#2c2c2c; }
+    /* Title in sage */
+    .card h3 { font-size: 1.8rem; margin-bottom: .4rem; color:#8A9A8E; font-weight: 700; }
     .card time { color:#8A9A8E; font-weight: 500; margin-bottom: 1rem; }
     .card .content { color:#2c2c2c; line-height: 1.8; font-size: 1.05rem; font-style: italic; overflow: auto; }
     .card .content::-webkit-scrollbar { width: 8px; }
@@ -375,9 +376,6 @@
         `;
       }).join('');
 
-      // Newest-first is assumed from your function; if needed:
-      // [...entries].sort((a,b)=>new Date(b.entry_date||b.created_at)-new Date(a.entry_date||a.created_at))
-
       initSwipeDeck(deck);
     }
 
@@ -417,27 +415,22 @@
 
           const dt = Date.now() - startTime;
           const velocityX = dx / Math.max(dt,1); // px/ms
-
           const shouldSwipe = Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(velocityX) > 0.6;
 
           if(shouldSwipe){
-            // fling out
             const dir = dx > 0 ? 1 : -1;
             card.style.transition = 'transform 280ms ease, opacity 280ms ease';
             card.style.transform = `translate(${dir*window.innerWidth}px, ${dy}px) rotate(${dir*18}deg)`;
             card.style.opacity = '0';
 
-            // recycle to back
             setTimeout(()=>{
               card.style.transition = 'none';
               card.style.opacity = '1';
               card.style.transform = 'translateY(40px) scale(0.955) rotate(-1deg)'; // place at back baseline
               deck.appendChild(card); // move to end
-              // force reflow to apply new stack transforms
               requestAnimationFrame(()=> layoutStack());
             }, 280);
           }else{
-            // snap back
             card.style.transition = 'transform 220ms ease, box-shadow 220ms ease';
             card.style.transform = '';
             card.style.boxShadow = '';
@@ -474,7 +467,6 @@
     }
 
     async function fetchJournal(){
-      const deck = document.getElementById('journal-deck');
       try{
         const res = await fetch('/.netlify/functions/journal', { cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
