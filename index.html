@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kurt Tristan - Wander in Wonder</title>
-  <meta name="description" content="Kurt Tristan - Explorer capturing moments of wonder" />
+  <meta name="description" content="Kurt Tristan — Wander in Wonder. Explorer capturing moments of wonder through photographs and words." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A9A8E' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E" type="image/svg+xml">
 
   <style>
@@ -23,7 +23,7 @@
     .sidebar-nav a:hover { background: rgba(138,154,142,0.1); color: #8A9A8E; transform: translateX(5px); }
     .sidebar-nav a.active { background: rgba(138,154,142,0.15); color: #8A9A8E; }
     .nav-icon { width: 24px; height: 24px; border-radius: 50%; background: #8A9A8E; display: flex; align-items: center; justify-content: center; margin-right: 1rem; color: white; }
-    /* Fix for mobile: ensure the SVG is visible inside the green circle */
+    /* Make sure SVG shows inside the green circle on mobile */
     .nav-icon svg { width: 14px; height: 14px; display: block; stroke-width: 2.2; }
     .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(138,154,142,0.1); margin-top: auto; }
     .sidebar-footer p { font-size: .8rem; color: #999; text-align: center; }
@@ -66,10 +66,11 @@
     }
     .deck {
       position: relative;
-      width: min(820px, calc(100vw - 2rem)); /* center-friendly width */
+      width: 100%;
+      max-width: 820px;       /* center via max-width + auto margins */
       height: 520px;
       perspective: 1200px;
-      margin-inline: auto; /* ensure centered on mobile */
+      margin: 0 auto;         /* <- centers on mobile reliably */
     }
 
     .card {
@@ -178,10 +179,10 @@
       .logo{font-size:1.5rem; font-weight:700; color:#2c2c2c; text-decoration:none;}
       .mobile-menu-btn{background:none; border:none; font-size:1.5rem; color:#2c2c2c; cursor:pointer;}
       .hero{padding-top:80px; height:calc(100vh - 80px);}
-      /* center helpers */
-      .journal-container { padding: 0 1.5rem; }
-      .gallery-container { padding: 0 1.5rem; }
-      .deck { width: min(820px, calc(100vw - 3rem)); }
+      /* Center helpers on mobile */
+      .journal-container { padding: 0 1.25rem; }
+      .gallery-container { padding: 0 1.25rem; }
+      .deck { max-width: 820px; width: 100%; margin: 0 auto; }
     }
     @media (max-width:768px) {
       .hero h1{font-size:3rem;}
@@ -189,7 +190,7 @@
       .gallery-grid{grid-template-columns:1fr;}
       .section-title h2{font-size:2rem;}
       .sidebar{width:100%;}
-      .deck { height: 520px; width: min(820px, calc(100vw - 1.5rem)); }
+      .deck { height: 520px; width: 100%; max-width: 820px; margin: 0 auto; }
       .deck-wrap { height: 560px; }
     }
     html { scroll-behavior:smooth; }
@@ -226,7 +227,7 @@
   <!-- Hero -->
   <section class="hero" id="home">
     <div class="hero-content">
-      <h1>Wander & Wonder</h1>
+      <h1>Wander in Wonder</h1>
       <p>When is Anything Ever Always?</p>
       <a href="#gallery" class="cta-button">Explore Gallery</a>
     </div>
